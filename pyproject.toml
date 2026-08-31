@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smart-store-analytics-ai"
+version = "1.0.0"
+description = "Computer Vision & Retail Spatial Intelligence Engine (Multi-Object Tracking, Dwell-Time, Heatmaps & Queue Monitoring)"
+readme = "README.md"
+authors = [{ name = "Ahmed Khaled (Ahmed Algendy)", email = "contact@ahmedalgendy.com" }]
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+    "jinja2>=3.1.3",
+    "httpx>=0.26.0",
+]
+
+[project.scripts]
+smart-store-analytics = "smart_store_analytics.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]

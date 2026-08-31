@@ -1,0 +1,56 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+
+# IDE / Editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment Variables
+.env
+.env.local
+
+# Data and video media
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.png
+*.jpg
+*.jpeg
+data/
+outputs/
+reports/
+.pytest_cache/
+.coverage
+htmlcov/

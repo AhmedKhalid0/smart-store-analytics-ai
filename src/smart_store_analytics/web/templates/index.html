@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Top Navbar -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="logo-icon">👁️</div>
+                <div class="brand-text">
+                    <h1>Smart-Store-Analytics</h1>
+                    <span class="badge">Vision AI & Retail Intelligence v{{ version }}</span>
+                </div>
+            </div>
+            <div class="nav-metrics">
+                <div class="metric-pill">
+                    <span class="dot live"></span>
+                    <span class="label">Detector:</span>
+                    <strong id="metric-model">YOLOv8n (Person)</strong>
+                </div>
+                <div class="metric-pill">
+                    <span class="label">Tracker:</span>
+                    <strong>ByteTrack / MOT</strong>
+                </div>
+                <div class="metric-pill">
+                    <span class="label">FPS:</span>
+                    <strong id="metric-fps" class="text-cyan">30.0</strong>
+                </div>
+                <a href="/docs" target="_blank" class="btn btn-outline btn-sm">API Docs ↗</a>
+            </div>
+        </header>
+
+        <!-- KPI Metrics Grid -->
+        <section class="kpi-grid">
+            <div class="kpi-card">
+                <span class="kpi-label">Total Footfall</span>
+                <div class="kpi-value-row">
+                    <span class="kpi-val" id="kpi-footfall">0</span>
+                    <span class="kpi-badge text-emerald">+18% vs avg</span>
+                </div>
+                <span class="kpi-sub">Unique shoppers detected</span>
+            </div>
+
+            <div class="kpi-card">
+                <span class="kpi-label">Active In-Store</span>
+                <div class="kpi-value-row">
+                    <span class="kpi-val text-cyan" id="kpi-active">0</span>
+                    <span class="kpi-badge text-cyan">Live</span>
+                </div>
+                <span class="kpi-sub">Currently browsing floor</span>
+            </div>
+
+            <div class="kpi-card">
+                <span class="kpi-label">Avg Store Dwell Time</span>
+                <div class="kpi-value-row">
+                    <span class="kpi-val text-purple" id="kpi-dwell">0.0s</span>
+                    <span class="kpi-badge text-purple">High Engagement</span>
+                </div>
+                <span class="kpi-sub">Across all commercial zones</span>
+            </div>
+
+            <div class="kpi-card">
+                <span class="kpi-label">Queue Bottleneck Alerts</span>
+                <div class="kpi-value-row">
+                    <span class="kpi-val text-amber" id="kpi-alerts">0</span>
+                    <span class="kpi-badge text-amber" id="kpi-alert-status">Normal</span>
+                </div>
+                <span class="kpi-sub">Checkout SLA violations</span>
+            </div>
+        </section>
+
+        <!-- Main Workspace -->
+        <div class="main-container">
+            <!-- Left: Interactive 2D Store Floorplan & Trajectory Canvas -->
+            <main class="canvas-workspace">
+                <div class="panel-header">
+                    <div class="header-title">
+                        <h3>2D Store Spatial Floorplan & Trajectories</h3>
+                        <span class="subtitle">Live multi-object tracking and zone occupancy</span>
+                    </div>
+                    <div class="canvas-controls">
+                        <label class="toggle-control">
+                            <input type="checkbox" id="toggle-heatmap" checked>
+                            <span>Density Heatmap Overlay</span>
+                        </label>
+                        <button id="btn-simulate" class="btn btn-primary btn-sm">▶️ Run Simulation Stream</button>
+                    </div>
+                </div>
+
+                <div class="canvas-wrapper">
+                    <canvas id="store-canvas" width="1280" height="720"></canvas>
+                </div>
+            </main>
+
+            <!-- Right Sidebar: Zone Engagement & Queue Alerts -->
+            <aside class="analytics-sidebar">
+                <!-- Zone Engagement Breakdown -->
+                <div class="zone-breakdown-card">
+                    <div class="panel-header">
+                        <h3>Commercial Zones</h3>
+                        <span class="badge" id="zones-count-badge">4 Configured</span>
+                    </div>
+                    <div class="zones-list" id="zones-list">
+                        <!-- Populated by app.js -->
+                    </div>
+                </div>
+
+                <!-- Queue & Bottleneck Alerts -->
+                <div class="queue-alerts-card">
+                    <div class="panel-header">
+                        <h3>Queue Anomaly Alerts</h3>
+                    </div>
+                    <div class="alerts-feed" id="alerts-feed">
+                        <div class="empty-alerts">No active bottleneck alerts. Queue SLA operating within normal limits.</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
