@@ -12,7 +12,7 @@
 
 **A high-performance Computer Vision and Retail Spatial Intelligence platform that performs Multi-Object Tracking (MOT), commercial zone dwell-time analysis, 2D footfall heatmaps, queue bottleneck alerting, and real-time dashboard analytics for modern commercial venues.**
 
-[Key Features](#-key-features) • [Architecture](#-architecture) • [Quick Start](#-quick-start) • [Retail Dashboard](#-retail-dashboard) • [CLI Guide](#-cli-guide) • [Case Study](#-case-study) • [Author](#-author)
+[Key Features](#-key-features) • [Architecture](#-architecture) • [Quick Start](#-quick-start) • [Retail Dashboard](#-retail-dashboard) • [CLI Guide](#-cli-guide) • [Author](#-author)
 
 </div>
 
@@ -141,12 +141,6 @@ python -m unittest discover tests -v
 * ⏱️ **Dwell-Time Precision**: **< 0.5s** frame-accurate dwell measurement.
 * 🛡️ **Queue SLA Impact**: **40% reduction** in line abandonment via automated bottleneck alerts.
 * 🚀 **Test Suite Runtime**: **0.041s** for 15 unit & integration tests.
-
----
-
-## 📑 Case Study & CV Summary
-
-Read the complete engineering deep-dive in [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
 
 ---
 
