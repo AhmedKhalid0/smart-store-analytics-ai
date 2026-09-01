@@ -16,6 +16,13 @@
 
 </div>
 
+## 📸 Visual Showcase
+
+### Retail Spatial Analytics & High-Throughput REST API
+| Real-Time 2D Floorplan, Dwell Times & Trajectories | FastAPI Interactive Swagger API Documentation |
+| :---: | :---: |
+| ![Spatial Heatmaps Dashboard](docs/assets/01_spatial_heatmaps.png) | ![REST API Docs](docs/assets/02_rest_api.png) |
+
 ---
 
 ## 🌟 Key Features
