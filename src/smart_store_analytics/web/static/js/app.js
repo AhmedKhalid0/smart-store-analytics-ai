@@ -1,5 +1,5 @@
 /**
- * SmartStore.ai — Human-Crafted Retail Spatial Intelligence & Trajectory Studio
+ * Smart Store AI — Human-Crafted Retail Spatial Intelligence & Trajectory Studio
  * Pure Vanilla JavaScript, High-DPI Canvas Rendering, Smooth Animations & Theme Management
  */
 
