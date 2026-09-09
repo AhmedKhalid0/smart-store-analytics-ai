@@ -31,11 +31,30 @@ document.addEventListener('DOMContentLoaded', () => {
         exportDropdownBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             exportDropdownWrapper.classList.toggle('open');
+            if (streamSourceWrapper) streamSourceWrapper.classList.remove('open');
         });
 
         document.addEventListener('click', (e) => {
             if (!exportDropdownWrapper.contains(e.target)) {
                 exportDropdownWrapper.classList.remove('open');
+            }
+        });
+    }
+
+    // Stream Source Dropdown Setup
+    const streamSourceBtn = document.getElementById('stream-source-btn');
+    const streamSourceWrapper = document.getElementById('stream-source-wrapper');
+
+    if (streamSourceBtn && streamSourceWrapper) {
+        streamSourceBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            streamSourceWrapper.classList.toggle('open');
+            if (exportDropdownWrapper) exportDropdownWrapper.classList.remove('open');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!streamSourceWrapper.contains(e.target)) {
+                streamSourceWrapper.classList.remove('open');
             }
         });
     }
@@ -79,6 +98,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const canvas = document.getElementById('store-canvas');
     const ctx = canvas.getContext('2d');
+
+    // Stream Source Ingestion DOM Elements
+    const currentStreamLabel = document.getElementById('current-stream-label');
+    const streamIndicatorDot = document.getElementById('stream-indicator-dot');
+    const quickStreamLabel = document.getElementById('quick-stream-label');
+    const btnStreamSynthetic = document.getElementById('btn-stream-synthetic');
+    const btnOpenUploadCctv = document.getElementById('btn-open-upload-cctv');
+    const btnOpenConnectRtsp = document.getElementById('btn-open-connect-rtsp');
+
+    const uploadModalBackdrop = document.getElementById('upload-modal-backdrop');
+    const btnCloseUploadModal = document.getElementById('btn-close-upload-modal');
+    const btnCancelUpload = document.getElementById('btn-cancel-upload');
+    const formUploadCctv = document.getElementById('form-upload-cctv');
+    const cctvVideoFile = document.getElementById('cctv-video-file');
+    const cctvCameraName = document.getElementById('cctv-camera-name');
+    const fileDropZone = document.getElementById('file-drop-zone');
+    const dropZoneText = document.getElementById('drop-zone-text');
+    const uploadBtnText = document.getElementById('upload-btn-text');
+
+    const rtspModalBackdrop = document.getElementById('rtsp-modal-backdrop');
+    const btnCloseRtspModal = document.getElementById('btn-close-rtsp-modal');
+    const btnCancelRtsp = document.getElementById('btn-cancel-rtsp');
+    const formConnectRtsp = document.getElementById('form-connect-rtsp');
+    const rtspStreamUrl = document.getElementById('rtsp-stream-url');
+    const rtspCameraName = document.getElementById('rtsp-camera-name');
+    const rtspBtnText = document.getElementById('rtsp-btn-text');
 
     // State Variables
     let heatmapMatrix = null;
@@ -1071,6 +1116,248 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------------------
+    // 7.6 Multi-Source Stream Ingestion Management (Phase 4)
+    // -------------------------------------------------------------------------
+    function updateStreamUI(status) {
+        if (!status) return;
+
+        // Update top navigation button label
+        if (currentStreamLabel) {
+            let labelText = status.camera_name || 'Stream Feed';
+            if (labelText.length > 24) labelText = labelText.slice(0, 22) + '...';
+            currentStreamLabel.textContent = `Feed: ${labelText}`;
+        }
+
+        // Update canvas quick info
+        if (quickStreamLabel) {
+            const res = status.resolution ? `${status.resolution[0]}x${status.resolution[1]}` : '1280x720';
+            const fps = status.fps ? `${status.fps} FPS` : '30 FPS';
+            let typeLabel = 'Synthetic';
+            if (status.source_type === 'video_file') typeLabel = 'CCTV Ingestion';
+            else if (status.source_type === 'rtsp_stream') typeLabel = 'Live RTSP';
+            quickStreamLabel.textContent = `${typeLabel} (${res}, ${fps})`;
+        }
+
+        // Update status dot indicator
+        if (streamIndicatorDot) {
+            streamIndicatorDot.className = 'stream-live-indicator';
+            if (status.source_type === 'synthetic') {
+                streamIndicatorDot.classList.add('synthetic');
+            } else if (!status.is_active) {
+                streamIndicatorDot.classList.add('connecting');
+            }
+        }
+
+        // Update active class on dropdown items
+        if (btnStreamSynthetic) {
+            btnStreamSynthetic.classList.toggle('active', status.source_type === 'synthetic');
+        }
+        if (btnOpenUploadCctv) {
+            btnOpenUploadCctv.classList.toggle('active', status.source_type === 'video_file');
+        }
+        if (btnOpenConnectRtsp) {
+            btnOpenConnectRtsp.classList.toggle('active', status.source_type === 'rtsp_stream');
+        }
+    }
+
+    async function loadStreamStatus() {
+        try {
+            const res = await fetch('/api/v1/streams/status');
+            if (res.ok) {
+                const data = await res.json();
+                updateStreamUI(data);
+            }
+        } catch (err) {
+            console.error('Error fetching stream status:', err);
+        }
+    }
+
+    // Reset to Synthetic Source
+    if (btnStreamSynthetic) {
+        btnStreamSynthetic.addEventListener('click', async () => {
+            if (streamSourceWrapper) streamSourceWrapper.classList.remove('open');
+            try {
+                const res = await fetch('/api/v1/streams/reset-synthetic', { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    updateStreamUI(data);
+                    await triggerSimulationStep();
+                }
+            } catch (err) {
+                console.error('Error resetting to synthetic stream:', err);
+            }
+        });
+    }
+
+    // Upload Modal Handling
+    function openUploadModal() {
+        if (streamSourceWrapper) streamSourceWrapper.classList.remove('open');
+        if (uploadModalBackdrop) uploadModalBackdrop.classList.add('open');
+    }
+
+    function closeUploadModal() {
+        if (uploadModalBackdrop) uploadModalBackdrop.classList.remove('open');
+        if (formUploadCctv) formUploadCctv.reset();
+        if (dropZoneText) dropZoneText.textContent = 'Click to choose or drag & drop video';
+    }
+
+    if (btnOpenUploadCctv) btnOpenUploadCctv.addEventListener('click', openUploadModal);
+    if (btnCloseUploadModal) btnCloseUploadModal.addEventListener('click', closeUploadModal);
+    if (btnCancelUpload) btnCancelUpload.addEventListener('click', closeUploadModal);
+
+    // CCTV File Drop Zone interactions
+    if (cctvVideoFile) {
+        cctvVideoFile.addEventListener('change', () => {
+            if (cctvVideoFile.files && cctvVideoFile.files.length > 0) {
+                const f = cctvVideoFile.files[0];
+                const sizeMb = (f.size / (1024 * 1024)).toFixed(1);
+                if (dropZoneText) {
+                    dropZoneText.textContent = `Selected: ${f.name} (${sizeMb} MB)`;
+                }
+                if (cctvCameraName && !cctvCameraName.value) {
+                    cctvCameraName.value = `CCTV: ${f.name.replace(/\.[^/.]+$/, "")}`;
+                }
+            }
+        });
+    }
+
+    if (fileDropZone) {
+        ['dragenter', 'dragover'].forEach(name => {
+            fileDropZone.addEventListener(name, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileDropZone.classList.add('dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(name => {
+            fileDropZone.addEventListener(name, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileDropZone.classList.remove('dragover');
+            });
+        });
+        fileDropZone.addEventListener('drop', (e) => {
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                cctvVideoFile.files = e.dataTransfer.files;
+                const f = e.dataTransfer.files[0];
+                const sizeMb = (f.size / (1024 * 1024)).toFixed(1);
+                if (dropZoneText) {
+                    dropZoneText.textContent = `Selected: ${f.name} (${sizeMb} MB)`;
+                }
+                if (cctvCameraName && !cctvCameraName.value) {
+                    cctvCameraName.value = `CCTV: ${f.name.replace(/\.[^/.]+$/, "")}`;
+                }
+            }
+        });
+    }
+
+    if (formUploadCctv) {
+        formUploadCctv.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!cctvVideoFile.files || cctvVideoFile.files.length === 0) {
+                alert('Please select a video file to upload.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', cctvVideoFile.files[0]);
+            if (cctvCameraName && cctvCameraName.value.trim()) {
+                formData.append('camera_name', cctvCameraName.value.trim());
+            }
+
+            if (uploadBtnText) uploadBtnText.textContent = 'Uploading & Mounting...';
+
+            try {
+                const res = await fetch('/api/v1/streams/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    updateStreamUI(data);
+                    closeUploadModal();
+                    await triggerSimulationStep();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || 'Failed to upload video footage.');
+                }
+            } catch (err) {
+                console.error('Error uploading video stream:', err);
+                alert('Connection error uploading video file.');
+            } finally {
+                if (uploadBtnText) uploadBtnText.textContent = 'Ingest & Mount Stream';
+            }
+        });
+    }
+
+    // Connect RTSP Modal Handling
+    function openRtspModal() {
+        if (streamSourceWrapper) streamSourceWrapper.classList.remove('open');
+        if (rtspModalBackdrop) rtspModalBackdrop.classList.add('open');
+    }
+
+    function closeRtspModal() {
+        if (rtspModalBackdrop) rtspModalBackdrop.classList.remove('open');
+        if (formConnectRtsp) formConnectRtsp.reset();
+    }
+
+    if (btnOpenConnectRtsp) btnOpenConnectRtsp.addEventListener('click', openRtspModal);
+    if (btnCloseRtspModal) btnCloseRtspModal.addEventListener('click', closeRtspModal);
+    if (btnCancelRtsp) btnCancelRtsp.addEventListener('click', closeRtspModal);
+
+    // Preset chip clicks
+    document.querySelectorAll('.preset-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const url = chip.getAttribute('data-url');
+            if (rtspStreamUrl && url) {
+                rtspStreamUrl.value = url;
+                if (rtspCameraName && !rtspCameraName.value) {
+                    rtspCameraName.value = chip.textContent.trim();
+                }
+            }
+        });
+    });
+
+    if (formConnectRtsp) {
+        formConnectRtsp.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rtsp_url = rtspStreamUrl.value.trim();
+            const camera_name = rtspCameraName.value.trim() || undefined;
+
+            if (!rtsp_url) {
+                alert('Please enter a valid RTSP or HTTP camera stream URL.');
+                return;
+            }
+
+            if (rtspBtnText) rtspBtnText.textContent = 'Connecting...';
+
+            try {
+                const res = await fetch('/api/v1/streams/connect-rtsp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rtsp_url, camera_name })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    updateStreamUI(data);
+                    closeRtspModal();
+                    await triggerSimulationStep();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || 'Failed to connect to RTSP endpoint.');
+                }
+            } catch (err) {
+                console.error('Error connecting RTSP endpoint:', err);
+                alert('Network error connecting to camera.');
+            } finally {
+                if (rtspBtnText) rtspBtnText.textContent = 'Connect Camera';
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
     // 8. Initial Initialization
     // -------------------------------------------------------------------------
     initCanvasResolution();
@@ -1078,5 +1365,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadZones();
     loadAnalytics();
     loadAdvisorInsights();
+    loadStreamStatus();
 });
 

@@ -48,10 +48,14 @@ async def get_analytics_stats(request: Request) -> AnalyticsResponse:
         for t in active_tracks
     ]
 
+    current_frame = 120
+    if hasattr(request.app.state, "stream_manager") and request.app.state.stream_manager is not None:
+        current_frame = request.app.state.stream_manager.current_frame or 120
+
     return AnalyticsResponse(
         total_footfall=processor.spatial_engine.total_footfall,
         active_shoppers=len(active_tracks),
-        total_frames_processed=120,
+        total_frames_processed=current_frame,
         zones=zones_schema,
         queue_alerts=alerts_schema,
         trajectories=trajectories_schema,
@@ -62,5 +66,8 @@ async def get_analytics_stats(request: Request) -> AnalyticsResponse:
 async def trigger_simulation(request: Request) -> AnalyticsResponse:
     """Runs a fresh retail video stream simulation."""
     processor: VideoProcessor = request.app.state.processor
+    if hasattr(request.app.state, "stream_manager") and request.app.state.stream_manager is not None:
+        for _ in range(5):
+            request.app.state.stream_manager.step()
     processor.process_synthetic_simulation(num_frames=80)
     return await get_analytics_stats(request)

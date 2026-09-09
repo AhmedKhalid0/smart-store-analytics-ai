@@ -16,10 +16,12 @@ from smart_store_analytics.api.routes.analytics import router as analytics_route
 from smart_store_analytics.api.routes.health import router as health_router
 from smart_store_analytics.api.routes.heatmap import router as heatmap_router
 from smart_store_analytics.api.routes.reports import router as reports_router
+from smart_store_analytics.api.routes.streams import router as streams_router
 from smart_store_analytics.api.routes.zones import router as zones_router
 from smart_store_analytics.core.heatmap_generator import SpatialHeatmapGenerator
 from smart_store_analytics.core.queue_monitor import QueueMonitor
 from smart_store_analytics.core.spatial_analytics import SpatialAnalyticsEngine
+from smart_store_analytics.core.stream_manager import MultiSourceStreamManager
 from smart_store_analytics.core.tracking_engine import MultiObjectTracker
 from smart_store_analytics.core.video_processor import VideoProcessor
 from smart_store_analytics.utils.config import Settings, get_settings
@@ -60,6 +62,9 @@ async def lifespan(app: FastAPI):
         # Pre-seed initial simulation
         app.state.processor.process_synthetic_simulation(num_frames=60)
 
+    if not hasattr(app.state, "stream_manager") or app.state.stream_manager is None:
+        app.state.stream_manager = MultiSourceStreamManager(processor=app.state.processor)
+
     logger.info(f"Smart-Store-Analytics v{__version__} ready on {settings.host}:{settings.port}")
     yield
     logger.info("Shutting down Smart-Store-Analytics engine...")
@@ -70,6 +75,7 @@ def create_app(
     processor: Optional[VideoProcessor] = None,
     spatial_engine: Optional[SpatialAnalyticsEngine] = None,
     heatmap_gen: Optional[SpatialHeatmapGenerator] = None,
+    stream_manager: Optional[MultiSourceStreamManager] = None,
 ) -> FastAPI:
     """Creates configured FastAPI dashboard instance."""
     app_settings = settings or get_settings()
@@ -90,6 +96,10 @@ def create_app(
         app.state.heatmap_gen = heatmap_gen
     if processor:
         app.state.processor = processor
+    if stream_manager:
+        app.state.stream_manager = stream_manager
+    elif processor and not hasattr(app.state, "stream_manager"):
+        app.state.stream_manager = MultiSourceStreamManager(processor=processor)
 
     # CORS
     app.add_middleware(
@@ -107,6 +117,7 @@ def create_app(
     app.include_router(reports_router)
     app.include_router(advisor_router)
     app.include_router(zones_router)
+    app.include_router(streams_router)
 
     # Static assets and template rendering
     web_dir = Path(__file__).parent.parent / "web"

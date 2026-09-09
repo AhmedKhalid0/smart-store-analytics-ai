@@ -61,6 +61,39 @@
                     </svg>
                 </button>
 
+                <!-- Stream Ingestion Source Selector -->
+                <div class="dropdown-wrapper" id="stream-source-wrapper">
+                    <button id="stream-source-btn" class="nav-btn stream-source-btn" aria-haspopup="true" aria-expanded="false" title="Switch Video Feed Source">
+                        <span class="stream-live-indicator" id="stream-indicator-dot"></span>
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                        <span id="current-stream-label">Feed: Synthetic Demo</span>
+                        <svg class="dropdown-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="dropdown-menu stream-menu" id="stream-source-menu">
+                        <button class="dropdown-item active" id="btn-stream-synthetic" type="button">
+                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                            <div class="item-meta">
+                                <strong>Synthetic Retail Simulation</strong>
+                                <span>Deterministic mathematical store walk</span>
+                            </div>
+                        </button>
+                        <button class="dropdown-item" id="btn-open-upload-cctv" type="button">
+                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                            <div class="item-meta">
+                                <strong>Upload CCTV Video File</strong>
+                                <span>Ingest recorded MP4, AVI, or MOV footage</span>
+                            </div>
+                        </button>
+                        <button class="dropdown-item" id="btn-open-connect-rtsp" type="button">
+                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                            <div class="item-meta">
+                                <strong>Connect Live RTSP / IP Cam</strong>
+                                <span>Ingest live IP camera or NVR stream</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Export Reports Dropdown -->
                 <div class="dropdown-wrapper">
                     <button id="export-dropdown-btn" class="nav-btn export-btn" aria-haspopup="true" aria-expanded="false">
@@ -236,7 +269,7 @@
                     <div class="canvas-quick-info">
                         <span id="quick-frame-count">Frame 120 / 120</span>
                         <span class="info-sep">•</span>
-                        <span>Zero-GPU Deterministic</span>
+                        <span id="quick-stream-label">Zero-GPU Deterministic (1280x720)</span>
                     </div>
                 </div>
             </main>
@@ -369,6 +402,77 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="btn-cancel-add-zone">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="btn-submit-add-zone">Create Zone</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload CCTV Video Modal Dialog -->
+    <div class="zone-modal-backdrop" id="upload-modal-backdrop">
+        <div class="zone-modal stream-modal" id="upload-cctv-modal">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span class="modal-icon">📹</span>
+                    <h3>Upload Retail CCTV Footage</h3>
+                </div>
+                <button class="modal-close" id="btn-close-upload-modal" type="button" aria-label="Close Modal">&times;</button>
+            </div>
+            <form id="form-upload-cctv" class="modal-form">
+                <div class="form-group">
+                    <label>Video File (MP4, AVI, MOV, MKV)</label>
+                    <div class="file-drop-zone" id="file-drop-zone">
+                        <input type="file" id="cctv-video-file" accept=".mp4,.avi,.mov,.mkv" required class="file-input-hidden" />
+                        <div class="drop-zone-content">
+                            <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                            <span class="drop-primary-text" id="drop-zone-text">Click to choose or drag &amp; drop video</span>
+                            <span class="drop-sub-text">Supported: MP4, AVI, MOV, MKV (Local Ingestion)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cctv-camera-name">Camera Name / Department</label>
+                    <input type="text" id="cctv-camera-name" placeholder="e.g. South Wing Fashion Aisle - Cam 02" />
+                    <span class="form-hint">Designation displayed across retail dashboards</span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-upload">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-upload">
+                        <span id="upload-btn-text">Ingest &amp; Mount Stream</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Connect Live RTSP IP Camera Modal Dialog -->
+    <div class="zone-modal-backdrop" id="rtsp-modal-backdrop">
+        <div class="zone-modal stream-modal" id="connect-rtsp-modal">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span class="modal-icon">📡</span>
+                    <h3>Connect Live RTSP / IP Camera</h3>
+                </div>
+                <button class="modal-close" id="btn-close-rtsp-modal" type="button" aria-label="Close Modal">&times;</button>
+            </div>
+            <form id="form-connect-rtsp" class="modal-form">
+                <div class="form-group">
+                    <label for="rtsp-stream-url">Camera Stream Endpoint (RTSP / HTTP)</label>
+                    <input type="text" id="rtsp-stream-url" placeholder="rtsp://admin:password@192.168.1.120:554/live" required />
+                    <div class="sample-rtsp-chips">
+                        <span class="chip-hint">Presets:</span>
+                        <button type="button" class="preset-chip" data-url="rtsp://test-camera.local:554/live">Demo IP Camera</button>
+                        <button type="button" class="preset-chip" data-url="rtsp://admin:pass@192.168.1.100:554/ch0">NVR Channel 1</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="rtsp-camera-name">Camera Name / Store Zone</label>
+                    <input type="text" id="rtsp-camera-name" placeholder="e.g. Checkout Line 01 - High Angle" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-rtsp">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-rtsp">
+                        <span id="rtsp-btn-text">Connect Camera</span>
+                    </button>
                 </div>
             </form>
         </div>
