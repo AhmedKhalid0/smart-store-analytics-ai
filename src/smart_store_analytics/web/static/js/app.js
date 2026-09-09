@@ -65,6 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleZones = document.getElementById('toggle-zones');
     const toggleFixtures = document.getElementById('toggle-fixtures');
 
+    // AI Retail Copilot Drawer Elements
+    const btnCopilotToggle = document.getElementById('btn-copilot-toggle');
+    const copilotDrawer = document.getElementById('copilot-drawer');
+    const copilotBackdrop = document.getElementById('copilot-backdrop');
+    const btnCloseCopilot = document.getElementById('btn-close-copilot');
+    const btnRefreshInsights = document.getElementById('btn-refresh-insights');
+    const copilotHealthScore = document.getElementById('copilot-health-score');
+    const copilotExecSummary = document.getElementById('copilot-exec-summary');
+    const copilotBadgeCount = document.getElementById('copilot-badge-count');
+    const insightsCountHeader = document.getElementById('insights-count-header');
+    const insightsList = document.getElementById('insights-list');
+
     const canvas = document.getElementById('store-canvas');
     const ctx = canvas.getContext('2d');
 
@@ -207,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderAlerts(data.queue_alerts || []);
                 renderTracksList(trajectoriesData);
                 renderCanvas();
+                loadAdvisorInsights(false);
             }
         } catch (err) {
             console.error('Analytics load error:', err);
@@ -617,9 +630,162 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------------------
+    // 7.5 AI Retail Copilot Advisory Management
+    // -------------------------------------------------------------------------
+    function openCopilotDrawer() {
+        if (copilotDrawer && copilotBackdrop) {
+            copilotDrawer.classList.add('open');
+            copilotBackdrop.classList.add('open');
+            copilotDrawer.setAttribute('aria-hidden', 'false');
+            loadAdvisorInsights();
+        }
+    }
+
+    function closeCopilotDrawer() {
+        if (copilotDrawer && copilotBackdrop) {
+            copilotDrawer.classList.remove('open');
+            copilotBackdrop.classList.remove('open');
+            copilotDrawer.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    if (btnCopilotToggle) {
+        btnCopilotToggle.addEventListener('click', openCopilotDrawer);
+    }
+    if (btnCloseCopilot) {
+        btnCloseCopilot.addEventListener('click', closeCopilotDrawer);
+    }
+    if (copilotBackdrop) {
+        copilotBackdrop.addEventListener('click', closeCopilotDrawer);
+    }
+    if (btnRefreshInsights) {
+        btnRefreshInsights.addEventListener('click', () => loadAdvisorInsights());
+    }
+
+    // Keyboard accessibility: Escape key dismisses drawer
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && copilotDrawer && copilotDrawer.classList.contains('open')) {
+            closeCopilotDrawer();
+        }
+    });
+
+    async function loadAdvisorInsights(animate = true) {
+        try {
+            const res = await fetch('/api/v1/advisor/insights');
+            if (!res.ok) return;
+            const data = await res.json();
+
+            // 1. Health Score & Executive Summary
+            if (copilotHealthScore) {
+                copilotHealthScore.textContent = data.health_score;
+                const ring = copilotHealthScore.closest('.health-score-ring');
+                if (ring) {
+                    if (data.health_score >= 85) {
+                        ring.style.borderColor = 'var(--semantic-success)';
+                        copilotHealthScore.style.color = 'var(--semantic-success)';
+                    } else if (data.health_score >= 70) {
+                        ring.style.borderColor = 'var(--semantic-warning)';
+                        copilotHealthScore.style.color = 'var(--semantic-warning)';
+                    } else {
+                        ring.style.borderColor = 'var(--semantic-danger)';
+                        copilotHealthScore.style.color = 'var(--semantic-danger)';
+                    }
+                }
+            }
+
+            if (copilotExecSummary) {
+                copilotExecSummary.textContent = data.executive_summary;
+            }
+
+            if (copilotBadgeCount) {
+                copilotBadgeCount.textContent = data.total_insights;
+                copilotBadgeCount.style.display = data.total_insights > 0 ? 'inline-flex' : 'none';
+            }
+
+            if (insightsCountHeader) {
+                insightsCountHeader.textContent = data.total_insights;
+            }
+
+            // 2. Render Cards
+            if (insightsList) {
+                insightsList.innerHTML = '';
+                if (!data.insights || data.insights.length === 0) {
+                    insightsList.innerHTML = `
+                        <div class="empty-state">
+                            <span class="empty-icon">✓</span>
+                            <span class="empty-text">Store operating at optimal layout &amp; traffic efficiency</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                data.insights.forEach(insight => {
+                    const card = document.createElement('div');
+                    card.className = 'insight-card';
+                    if (insight.zone_id) {
+                        card.setAttribute('data-zone-id', insight.zone_id);
+                    }
+
+                    const impactClass = insight.impact ? insight.impact.toUpperCase() : 'OPERATIONAL';
+
+                    card.innerHTML = `
+                        <div class="insight-top">
+                            <span class="insight-category">${insight.category}</span>
+                            <span class="insight-impact-badge ${impactClass}">${insight.impact}</span>
+                        </div>
+                        <div class="insight-title">${insight.title}</div>
+                        <div class="insight-problem">${insight.problem}</div>
+                        <div class="insight-recommendation">${insight.recommendation}</div>
+                        <div class="insight-footer">
+                            <span class="insight-roi">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                                ${insight.projected_roi}
+                            </span>
+                            ${insight.zone_id ? `<button class="insight-action-btn" type="button" data-zone="${insight.zone_id}">Highlight Zone</button>` : ''}
+                        </div>
+                    `;
+
+                    // Zone hover & click interaction from card
+                    if (insight.zone_id) {
+                        card.addEventListener('mouseenter', () => {
+                            hoveredZoneId = insight.zone_id;
+                            renderCanvas();
+                        });
+                        card.addEventListener('mouseleave', () => {
+                            hoveredZoneId = null;
+                            renderCanvas();
+                        });
+
+                        const actionBtn = card.querySelector('.insight-action-btn');
+                        if (actionBtn) {
+                            actionBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                hoveredZoneId = insight.zone_id;
+                                renderCanvas();
+                                setTimeout(() => {
+                                    if (hoveredZoneId === insight.zone_id) {
+                                        hoveredZoneId = null;
+                                        renderCanvas();
+                                    }
+                                }, 3000);
+                            });
+                        }
+                    }
+
+                    insightsList.appendChild(card);
+                });
+            }
+        } catch (err) {
+            console.warn('Advisor insights load warning:', err);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // 8. Initial Initialization
     // -------------------------------------------------------------------------
     initCanvasResolution();
     loadHeatmap();
     loadAnalytics();
+    loadAdvisorInsights();
 });
+
