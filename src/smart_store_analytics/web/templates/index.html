@@ -182,6 +182,10 @@
                                 <span class="toggle-dot fixtures-dot"></span>
                                 <span>Fixtures</span>
                             </button>
+                            <button id="btn-edit-zones" class="toggle-btn edit-zones-btn" title="Toggle Interactive Zone Editor">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                <span>Edit Zones</span>
+                            </button>
                         </div>
 
                         <div class="divider-v"></div>
@@ -204,6 +208,22 @@
                 <div class="canvas-viewport" id="canvas-viewport">
                     <canvas id="store-canvas" width="1280" height="720"></canvas>
                     
+                    <!-- Floating Zone Editor Control Bar -->
+                    <div class="zone-editor-banner" id="zone-editor-banner" style="display: none;">
+                        <div class="editor-status-group">
+                            <span class="editor-pulse-dot"></span>
+                            <span class="editor-status-text"><strong>Zone Editor Active:</strong> Drag vertex handles to reshape retail zones</span>
+                        </div>
+                        <div class="editor-actions-group">
+                            <button id="btn-open-add-zone" class="editor-btn primary" type="button">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                <span>Add Zone</span>
+                            </button>
+                            <button id="btn-reset-zones-layout" class="editor-btn secondary" type="button">Reset Factory</button>
+                            <button id="btn-exit-zone-editor" class="editor-btn done" type="button">Done Editing</button>
+                        </div>
+                    </div>
+
                     <!-- Floating Floorplan Legend -->
                     <div class="canvas-legend">
                         <div class="legend-item"><span class="legend-swatch entrance"></span> Entrance Foyer</div>
@@ -309,6 +329,50 @@
             </div>
         </div>
     </aside>
+
+    <!-- Add Zone Modal Dialog -->
+    <div class="zone-modal-backdrop" id="zone-modal-backdrop">
+        <div class="zone-modal" id="zone-modal">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span class="modal-icon">📐</span>
+                    <h3>Define Commercial Zone</h3>
+                </div>
+                <button class="modal-close" id="btn-close-zone-modal" type="button" aria-label="Close Modal">&times;</button>
+            </div>
+            <form id="form-add-zone" class="modal-form">
+                <div class="form-group">
+                    <label for="zone-input-id">Zone Unique ID</label>
+                    <input type="text" id="zone-input-id" placeholder="e.g. zone_apparel" required pattern="^[a-zA-Z0-9_\-]+$" />
+                    <span class="form-hint">Machine identifier (e.g. zone_accessories, zone_bakery)</span>
+                </div>
+                <div class="form-group">
+                    <label for="zone-input-name">Display Name</label>
+                    <input type="text" id="zone-input-name" placeholder="e.g. Women's Apparel &amp; Fashion" required />
+                </div>
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="zone-input-category">Store Function / Category</label>
+                        <select id="zone-input-category">
+                            <option value="showcase">Showcase &amp; Premium Display</option>
+                            <option value="aisle">Shopping Aisle / Wall</option>
+                            <option value="checkout">Checkout &amp; Service Queue</option>
+                            <option value="entrance">Entrance &amp; Foyer</option>
+                            <option value="service">Customer Service Desk</option>
+                        </select>
+                    </div>
+                    <div class="form-group color-pick-group">
+                        <label for="zone-input-color">Border Color</label>
+                        <input type="color" id="zone-input-color" value="#06b6d4" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-add-zone">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-add-zone">Create Zone</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="/static/js/app.js"></script>
 </body>

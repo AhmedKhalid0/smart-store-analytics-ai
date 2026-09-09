@@ -16,6 +16,7 @@ from smart_store_analytics.api.routes.analytics import router as analytics_route
 from smart_store_analytics.api.routes.health import router as health_router
 from smart_store_analytics.api.routes.heatmap import router as heatmap_router
 from smart_store_analytics.api.routes.reports import router as reports_router
+from smart_store_analytics.api.routes.zones import router as zones_router
 from smart_store_analytics.core.heatmap_generator import SpatialHeatmapGenerator
 from smart_store_analytics.core.queue_monitor import QueueMonitor
 from smart_store_analytics.core.spatial_analytics import SpatialAnalyticsEngine
@@ -40,7 +41,8 @@ async def lifespan(app: FastAPI):
             max_age_frames=settings.tracking_max_age_frames,
         )
     if not hasattr(app.state, "spatial_engine") or app.state.spatial_engine is None:
-        app.state.spatial_engine = SpatialAnalyticsEngine()
+        zones_config_path = settings.data_dir / "zones_config.json"
+        app.state.spatial_engine = SpatialAnalyticsEngine(config_path=zones_config_path)
     if not hasattr(app.state, "heatmap_gen") or app.state.heatmap_gen is None:
         app.state.heatmap_gen = SpatialHeatmapGenerator()
     if not hasattr(app.state, "queue_monitor") or app.state.queue_monitor is None:
@@ -104,6 +106,7 @@ def create_app(
     app.include_router(heatmap_router)
     app.include_router(reports_router)
     app.include_router(advisor_router)
+    app.include_router(zones_router)
 
     # Static assets and template rendering
     web_dir = Path(__file__).parent.parent / "web"

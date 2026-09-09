@@ -90,6 +90,28 @@ document.addEventListener('DOMContentLoaded', () => {
     let playIntervalId = null;
     let frameCounter = 120;
 
+    // Zone Editor State & DOM
+    let isZoneEditorMode = false;
+    let activeDragVertex = null; // { zoneId, vertexIndex }
+    let hoveredVertex = null; // { zoneId, vertexIndex }
+    let selectedZoneId = null;
+    let zonesConfig = [];
+
+    const btnEditZones = document.getElementById('btn-edit-zones');
+    const zoneEditorBanner = document.getElementById('zone-editor-banner');
+    const btnExitZoneEditor = document.getElementById('btn-exit-zone-editor');
+    const btnOpenAddZone = document.getElementById('btn-open-add-zone');
+    const btnResetZonesLayout = document.getElementById('btn-reset-zones-layout');
+
+    const zoneModalBackdrop = document.getElementById('zone-modal-backdrop');
+    const btnCloseZoneModal = document.getElementById('btn-close-zone-modal');
+    const btnCancelAddZone = document.getElementById('btn-cancel-add-zone');
+    const formAddZone = document.getElementById('form-add-zone');
+    const zoneInputId = document.getElementById('zone-input-id');
+    const zoneInputName = document.getElementById('zone-input-name');
+    const zoneInputCategory = document.getElementById('zone-input-category');
+    const zoneInputColor = document.getElementById('zone-input-color');
+
     // Display Layer States
     const layers = {
         heatmap: true,
@@ -213,6 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 zonesData = data.zones || [];
+                if (zonesData.length > 0 && !activeDragVertex) {
+                    zonesConfig = zonesData;
+                }
                 trajectoriesData = data.trajectories || [];
 
                 renderZonesList(zonesData);
@@ -232,6 +257,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderZonesList(zones) {
         if (!zonesList) return;
         zonesList.innerHTML = '';
+        
+        const zonesBadge = document.getElementById('zones-badge');
+        if (zonesBadge) {
+            zonesBadge.textContent = `${zones.length} Configured`;
+        }
         
         zones.forEach(z => {
             const card = document.createElement('div');
@@ -261,6 +291,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 hoveredZoneId = null;
                 renderCanvas();
             });
+
+            card.addEventListener('click', () => {
+                selectedZoneId = selectedZoneId === z.id ? null : z.id;
+                renderCanvas();
+            });
+
+            // Delete button in zone row
+            const delBtn = document.createElement('button');
+            delBtn.className = 'zone-delete-btn';
+            delBtn.title = `Delete ${z.name}`;
+            delBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+            delBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (confirm(`Delete commercial zone '${z.name}'?`)) {
+                    try {
+                        const delRes = await fetch(`/api/v1/zones/${z.id}`, { method: 'DELETE' });
+                        if (delRes.ok) {
+                            await loadZones();
+                            await loadAnalytics();
+                        }
+                    } catch (err) {
+                        console.error('Failed to delete zone:', err);
+                    }
+                }
+            });
+
+            const topRow = card.querySelector('.zone-row-top');
+            if (topRow) topRow.appendChild(delBtn);
 
             zonesList.appendChild(card);
         });
@@ -456,17 +514,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // F. Commercial Zones Boundaries (Clean, Professional Outlines)
+        // F. Commercial Zones Boundaries (Clean, Professional Outlines & Interactive Vertices)
         if (layers.zones) {
-            const defaultPolygons = [
-                { id: "zone_entrance", name: "Zone 1: Entrance & Foyer", polygon: [[50, 50], [350, 50], [350, 250], [50, 250]], stroke: isDark ? '#38bdf8' : '#0284c7', fill: isDark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(2, 132, 199, 0.06)' },
-                { id: "zone_promotions", name: "Zone 2: Promotions & Showcase", polygon: [[380, 200], [680, 200], [680, 480], [380, 480]], stroke: isDark ? '#a78bfa' : '#7c3aed', fill: isDark ? 'rgba(167, 139, 250, 0.08)' : 'rgba(124, 58, 237, 0.06)' },
-                { id: "zone_electronics", name: "Zone 3: Electronics Wall", polygon: [[750, 50], [1200, 50], [1200, 350], [750, 350]], stroke: isDark ? '#34d399' : '#059669', fill: isDark ? 'rgba(52, 211, 153, 0.08)' : 'rgba(5, 150, 105, 0.06)' },
-                { id: "zone_checkout", name: "Zone 4: Checkout & Service Queue", polygon: [[800, 420], [1220, 420], [1220, 680], [800, 680]], stroke: isDark ? '#fbbf24' : '#d97706', fill: isDark ? 'rgba(251, 191, 36, 0.08)' : 'rgba(217, 119, 6, 0.06)' },
+            const renderZones = (zonesConfig && zonesConfig.length > 0) ? zonesConfig : [
+                { id: "zone_entrance", name: "Zone 1: Entrance & Foyer", polygon: [[50, 50], [350, 50], [350, 250], [50, 250]], color_hex: '#0284c7' },
+                { id: "zone_promotions", name: "Zone 2: Promotions & Showcase", polygon: [[380, 200], [680, 200], [680, 480], [380, 480]], color_hex: '#7c3aed' },
+                { id: "zone_electronics", name: "Zone 3: Electronics Wall", polygon: [[750, 50], [1200, 50], [1200, 350], [750, 350]], color_hex: '#059669' },
+                { id: "zone_checkout", name: "Zone 4: Checkout & Service Queue", polygon: [[800, 420], [1220, 420], [1220, 680], [800, 680]], color_hex: '#d97706' },
             ];
 
-            defaultPolygons.forEach(z => {
-                const isHovered = hoveredZoneId === z.id;
+            renderZones.forEach(z => {
+                if (!z.polygon || z.polygon.length < 3) return;
+                const isHovered = (hoveredZoneId === z.id) || (selectedZoneId === z.id);
+                const strokeColor = z.color_hex || (isDark ? '#38bdf8' : '#0284c7');
+                const fillColor = isHovered 
+                    ? (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)') 
+                    : (isDark ? 'rgba(56, 189, 248, 0.05)' : 'rgba(2, 132, 199, 0.04)');
+
                 ctx.beginPath();
                 ctx.moveTo(z.polygon[0][0], z.polygon[0][1]);
                 for (let i = 1; i < z.polygon.length; i++) {
@@ -474,14 +538,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 ctx.closePath();
 
-                // Fill with gentle highlight if hovered
-                ctx.fillStyle = isHovered ? (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)') : z.fill;
+                ctx.fillStyle = fillColor;
                 ctx.fill();
 
-                // 1.5px Crisp Architectural Outline
-                ctx.strokeStyle = z.stroke;
+                // 1.5px Crisp Architectural Outline (dashed or solid in edit mode)
+                ctx.strokeStyle = strokeColor;
                 ctx.lineWidth = isHovered ? 2.5 : 1.5;
-                ctx.setLineDash([6, 4]);
+                ctx.setLineDash(isZoneEditorMode ? [4, 4] : [6, 4]);
                 ctx.stroke();
                 ctx.setLineDash([]);
 
@@ -489,19 +552,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 const labelX = z.polygon[0][0] + 14;
                 const labelY = z.polygon[0][1] + 24;
                 
-                // Text background pill
                 ctx.font = '600 12px Plus Jakarta Sans, sans-serif';
                 const textWidth = ctx.measureText(z.name).width;
                 
-                ctx.fillStyle = isDark ? 'rgba(20, 23, 33, 0.85)' : 'rgba(255, 255, 255, 0.9)';
+                ctx.fillStyle = isDark ? 'rgba(20, 23, 33, 0.88)' : 'rgba(255, 255, 255, 0.92)';
                 drawRoundedRect(ctx, labelX - 6, labelY - 14, textWidth + 12, 20, 4);
                 ctx.fill();
-                ctx.strokeStyle = z.stroke;
+                ctx.strokeStyle = strokeColor;
                 ctx.lineWidth = 1;
                 ctx.stroke();
 
-                ctx.fillStyle = z.stroke;
+                ctx.fillStyle = strokeColor;
                 ctx.fillText(z.name, labelX, labelY);
+
+                // --- Zone Editor Mode: Interactive Draggable Vertex Handles ---
+                if (isZoneEditorMode) {
+                    z.polygon.forEach((pt, idx) => {
+                        const isHandleHovered = (hoveredVertex && hoveredVertex.zoneId === z.id && hoveredVertex.vertexIndex === idx) ||
+                                                (activeDragVertex && activeDragVertex.zoneId === z.id && activeDragVertex.vertexIndex === idx);
+                        const radius = isHandleHovered ? 7 : 5;
+
+                        // Outer handle background
+                        ctx.beginPath();
+                        ctx.arc(pt[0], pt[1], radius + 3, 0, Math.PI * 2);
+                        ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.8)';
+                        ctx.fill();
+
+                        // Inner solid handle dot
+                        ctx.beginPath();
+                        ctx.arc(pt[0], pt[1], radius, 0, Math.PI * 2);
+                        ctx.fillStyle = isHandleHovered ? '#ffffff' : strokeColor;
+                        ctx.fill();
+                        ctx.strokeStyle = isHandleHovered ? strokeColor : (isDark ? '#ffffff' : '#0f172a');
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    });
+                }
             });
         }
 
@@ -781,10 +867,215 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------------------
+    // 7.6 Interactive In-Browser Canvas Zone Editor
+    // -------------------------------------------------------------------------
+    async function loadZones() {
+        try {
+            const res = await fetch('/api/v1/zones');
+            if (res.ok) {
+                zonesConfig = await res.json();
+                renderCanvas();
+            }
+        } catch (err) {
+            console.warn('Failed to load zones from API:', err);
+        }
+    }
+
+    function toggleZoneEditor(forceState) {
+        isZoneEditorMode = typeof forceState === 'boolean' ? forceState : !isZoneEditorMode;
+        if (btnEditZones) btnEditZones.classList.toggle('active', isZoneEditorMode);
+        if (zoneEditorBanner) zoneEditorBanner.style.display = isZoneEditorMode ? 'flex' : 'none';
+        if (!isZoneEditorMode) {
+            hoveredVertex = null;
+            activeDragVertex = null;
+            canvas.style.cursor = 'default';
+        }
+        renderCanvas();
+    }
+
+    if (btnEditZones) btnEditZones.addEventListener('click', () => toggleZoneEditor());
+    if (btnExitZoneEditor) btnExitZoneEditor.addEventListener('click', () => toggleZoneEditor(false));
+
+    function getCanvasCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+            x: Math.round((e.clientX - rect.left) * scaleX),
+            y: Math.round((e.clientY - rect.top) * scaleY)
+        };
+    }
+
+    function findVertexUnderMouse(coords, threshold = 14) {
+        for (const zone of zonesConfig) {
+            if (!zone.polygon) continue;
+            for (let i = 0; i < zone.polygon.length; i++) {
+                const [vx, vy] = zone.polygon[i];
+                const dist = Math.hypot(coords.x - vx, coords.y - vy);
+                if (dist <= threshold) {
+                    return { zoneId: zone.id, vertexIndex: i };
+                }
+            }
+        }
+        return null;
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+        if (!isZoneEditorMode) return;
+        const coords = getCanvasCoords(e);
+        const match = findVertexUnderMouse(coords);
+        if (match) {
+            activeDragVertex = match;
+            selectedZoneId = match.zoneId;
+            canvas.style.cursor = 'grabbing';
+            renderCanvas();
+        }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        const coords = getCanvasCoords(e);
+
+        if (activeDragVertex) {
+            const clampedX = Math.max(30, Math.min(1250, coords.x));
+            const clampedY = Math.max(30, Math.min(690, coords.y));
+            
+            const targetZone = zonesConfig.find(z => z.id === activeDragVertex.zoneId);
+            if (targetZone && targetZone.polygon && targetZone.polygon[activeDragVertex.vertexIndex]) {
+                targetZone.polygon[activeDragVertex.vertexIndex] = [clampedX, clampedY];
+                renderCanvas();
+            }
+            return;
+        }
+
+        if (isZoneEditorMode) {
+            const match = findVertexUnderMouse(coords);
+            if (match) {
+                if (!hoveredVertex || hoveredVertex.zoneId !== match.zoneId || hoveredVertex.vertexIndex !== match.vertexIndex) {
+                    hoveredVertex = match;
+                    canvas.style.cursor = 'grab';
+                    renderCanvas();
+                }
+            } else {
+                if (hoveredVertex) {
+                    hoveredVertex = null;
+                    canvas.style.cursor = 'default';
+                    renderCanvas();
+                }
+            }
+        }
+    });
+
+    async function finishVertexDrag() {
+        if (!activeDragVertex) return;
+        const zoneToUpdate = zonesConfig.find(z => z.id === activeDragVertex.zoneId);
+        activeDragVertex = null;
+        canvas.style.cursor = isZoneEditorMode ? 'default' : 'default';
+        renderCanvas();
+
+        if (zoneToUpdate) {
+            try {
+                await fetch(`/api/v1/zones/${zoneToUpdate.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ polygon: zoneToUpdate.polygon })
+                });
+                await loadAnalytics();
+            } catch (err) {
+                console.error('Failed to persist zone polygon update:', err);
+            }
+        }
+    }
+
+    canvas.addEventListener('mouseup', finishVertexDrag);
+    canvas.addEventListener('mouseleave', finishVertexDrag);
+
+    // Add Zone Modal Event Handlers
+    function openZoneModal() {
+        if (zoneModalBackdrop) {
+            zoneModalBackdrop.classList.add('open');
+            if (formAddZone) formAddZone.reset();
+            if (zoneInputId) zoneInputId.focus();
+        }
+    }
+
+    function closeZoneModal() {
+        if (zoneModalBackdrop) {
+            zoneModalBackdrop.classList.remove('open');
+        }
+    }
+
+    if (btnOpenAddZone) btnOpenAddZone.addEventListener('click', openZoneModal);
+    if (btnCloseZoneModal) btnCloseZoneModal.addEventListener('click', closeZoneModal);
+    if (btnCancelAddZone) btnCancelAddZone.addEventListener('click', closeZoneModal);
+
+    if (formAddZone) {
+        formAddZone.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = zoneInputId.value.trim();
+            const name = zoneInputName.value.trim();
+            const category = zoneInputCategory.value;
+            const color_hex = zoneInputColor.value;
+
+            // Generate initial centered bounding rectangle
+            const offset = (zonesConfig.length * 40) % 200;
+            const poly = [
+                [400 + offset, 220 + offset],
+                [680 + offset, 220 + offset],
+                [680 + offset, 460 + offset],
+                [400 + offset, 460 + offset]
+            ];
+
+            try {
+                const res = await fetch('/api/v1/zones', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id,
+                        name,
+                        polygon: poly,
+                        color_hex,
+                        category
+                    })
+                });
+
+                if (res.ok) {
+                    closeZoneModal();
+                    await loadZones();
+                    await loadAnalytics();
+                    selectedZoneId = id;
+                    renderCanvas();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || 'Failed to create zone.');
+                }
+            } catch (err) {
+                console.error('Error creating zone:', err);
+            }
+        });
+    }
+
+    // Reset Factory Layout
+    if (btnResetZonesLayout) {
+        btnResetZonesLayout.addEventListener('click', async () => {
+            if (confirm('Reset commercial store layout to default factory zones?')) {
+                try {
+                    await fetch('/api/v1/zones/reset', { method: 'POST' });
+                    await loadZones();
+                    await loadAnalytics();
+                    renderCanvas();
+                } catch (err) {
+                    console.error('Error resetting zones:', err);
+                }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
     // 8. Initial Initialization
     // -------------------------------------------------------------------------
     initCanvasResolution();
     loadHeatmap();
+    loadZones();
     loadAnalytics();
     loadAdvisorInsights();
 });

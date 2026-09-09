@@ -16,6 +16,7 @@ class HealthResponse(BaseModel):
 class ZoneMetricSchema(BaseModel):
     id: str
     name: str
+    polygon: List[Tuple[float, float]] = Field(default_factory=list)
     color_hex: str
     category: str
     total_visits: int

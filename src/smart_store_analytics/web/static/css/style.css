@@ -1297,3 +1297,308 @@ body {
     border-color: var(--accent-brand);
 }
 
+/* =========================================================================
+   Interactive Zone Editor Banner & Controls
+   ========================================================================= */
+.edit-zones-btn.active {
+    background-color: var(--accent-brand-subtle);
+    color: var(--accent-brand);
+    border-color: var(--accent-brand-border);
+    font-weight: 600;
+}
+
+.zone-editor-banner {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-full);
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow-md);
+    z-index: 50;
+    animation: fadeInDown 0.2s ease forwards;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.editor-status-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--semantic-success);
+    animation: editorPulse 1.8s infinite;
+}
+
+@keyframes editorPulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.editor-status-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.editor-status-text strong {
+    color: var(--text-primary);
+}
+
+.editor-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.editor-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
+.editor-btn.primary {
+    background-color: var(--accent-brand);
+    color: #ffffff;
+}
+
+.editor-btn.primary:hover {
+    background-color: var(--accent-brand-hover);
+}
+
+.editor-btn.secondary {
+    background-color: var(--bg-surface-muted);
+    border-color: var(--border-subtle);
+    color: var(--text-secondary);
+}
+
+.editor-btn.secondary:hover {
+    color: var(--text-primary);
+    border-color: var(--border-muted);
+}
+
+.editor-btn.done {
+    background-color: var(--semantic-success-subtle);
+    border-color: var(--semantic-success-border);
+    color: var(--semantic-success-text);
+}
+
+.editor-btn.done:hover {
+    background-color: var(--semantic-success);
+    color: #ffffff;
+}
+
+/* Zone Delete Button in Sidebar */
+.zone-delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 3px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    opacity: 0;
+}
+
+.zone-row-card:hover .zone-delete-btn {
+    opacity: 1;
+}
+
+.zone-delete-btn:hover {
+    color: var(--semantic-danger-text);
+    background-color: var(--semantic-danger-subtle);
+}
+
+.zone-delete-btn svg {
+    width: 13px;
+    height: 13px;
+}
+
+/* =========================================================================
+   Add Zone Modal Dialog
+   ========================================================================= */
+.zone-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 400;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.zone-modal-backdrop.open {
+    display: flex;
+}
+
+.zone-modal {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 440px;
+    overflow: hidden;
+    animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPopIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-icon {
+    font-size: 16px;
+}
+
+.modal-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+.modal-form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-group input[type="text"],
+.form-group select {
+    background-color: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group select:focus {
+    border-color: var(--accent-brand);
+    box-shadow: 0 0 0 2px var(--accent-brand-subtle);
+}
+
+.form-hint {
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.form-row .flex-1 {
+    flex: 1;
+}
+
+.color-pick-group input[type="color"] {
+    width: 44px;
+    height: 34px;
+    padding: 2px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    background: transparent;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+
