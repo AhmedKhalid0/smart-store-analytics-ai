@@ -54,6 +54,38 @@
                     </svg>
                 </button>
 
+                <!-- Export Reports Dropdown -->
+                <div class="dropdown-wrapper">
+                    <button id="export-dropdown-btn" class="nav-btn export-btn" aria-haspopup="true" aria-expanded="false">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        <span>Export Report</span>
+                        <svg class="dropdown-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="dropdown-menu" id="export-dropdown-menu">
+                        <a href="/api/v1/reports/executive" target="_blank" class="dropdown-item">
+                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            <div class="item-meta">
+                                <strong>Executive PDF Report</strong>
+                                <span>Print-ready executive summary & audit</span>
+                            </div>
+                        </a>
+                        <a href="/api/v1/reports/export/dwell-csv" class="dropdown-item">
+                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <div class="item-meta">
+                                <strong>Zone Dwell Data (CSV)</strong>
+                                <span>Export raw visits, footfall share & dwell times</span>
+                            </div>
+                        </a>
+                        <a href="/api/v1/reports/export/queue-csv" class="dropdown-item">
+                            <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            <div class="item-meta">
+                                <strong>Queue SLA Incidents (CSV)</strong>
+                                <span>Historical log of bottleneck durations</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
                 <a href="/docs" target="_blank" class="nav-btn api-btn">
                     <span>API Docs</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>

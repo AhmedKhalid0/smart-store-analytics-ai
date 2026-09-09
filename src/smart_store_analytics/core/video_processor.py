@@ -97,3 +97,21 @@ class VideoProcessor:
             queue_alerts=self.queue_monitor.alert_history,
             active_trajectories=trajectories,
         )
+
+    def get_analytics_summary(self) -> VideoAnalyticsSummary:
+        """Returns the current snapshot analytics summary without running a new simulation."""
+        zone_metrics = self.spatial_engine.get_zone_analytics()
+        active_tracks = [t for t in self.tracker.tracks.values() if t.state.value == "confirmed"]
+        trajectories = [
+            {"track_id": t.track_id, "points": t.trajectory[-15:], "current_pos": t.centroid}
+            for t in active_tracks
+        ]
+        return VideoAnalyticsSummary(
+            total_frames_processed=120,
+            duration_seconds=round(120 / self.fps, 2),
+            total_footfall=self.spatial_engine.total_footfall,
+            active_shoppers=len(active_tracks),
+            zone_metrics=zone_metrics,
+            queue_alerts=self.queue_monitor.alert_history,
+            active_trajectories=trajectories,
+        )

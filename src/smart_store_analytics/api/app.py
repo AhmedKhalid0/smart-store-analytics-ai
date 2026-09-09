@@ -14,6 +14,7 @@ from smart_store_analytics import __version__
 from smart_store_analytics.api.routes.analytics import router as analytics_router
 from smart_store_analytics.api.routes.health import router as health_router
 from smart_store_analytics.api.routes.heatmap import router as heatmap_router
+from smart_store_analytics.api.routes.reports import router as reports_router
 from smart_store_analytics.core.heatmap_generator import SpatialHeatmapGenerator
 from smart_store_analytics.core.queue_monitor import QueueMonitor
 from smart_store_analytics.core.spatial_analytics import SpatialAnalyticsEngine
@@ -100,6 +101,7 @@ def create_app(
     app.include_router(health_router)
     app.include_router(analytics_router)
     app.include_router(heatmap_router)
+    app.include_router(reports_router)
 
     # Static assets and template rendering
     web_dir = Path(__file__).parent.parent / "web"

@@ -23,6 +23,23 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggleBtn.addEventListener('click', toggleTheme);
     }
 
+    // Export Dropdown Setup
+    const exportDropdownBtn = document.getElementById('export-dropdown-btn');
+    const exportDropdownWrapper = exportDropdownBtn ? exportDropdownBtn.closest('.dropdown-wrapper') : null;
+
+    if (exportDropdownBtn && exportDropdownWrapper) {
+        exportDropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            exportDropdownWrapper.classList.toggle('open');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!exportDropdownWrapper.contains(e.target)) {
+                exportDropdownWrapper.classList.remove('open');
+            }
+        });
+    }
+
     // -------------------------------------------------------------------------
     // 2. DOM Elements & State
     // -------------------------------------------------------------------------
