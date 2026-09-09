@@ -125,6 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const rtspCameraName = document.getElementById('rtsp-camera-name');
     const rtspBtnText = document.getElementById('rtsp-btn-text');
 
+    // Shopper Flow & Conversion Funnel DOM Elements
+    const funnelOverallConv = document.getElementById('funnel-overall-conv');
+    const funnelConvRate = document.getElementById('funnel-conv-rate');
+    const funnelAbandonRate = document.getElementById('funnel-abandon-rate');
+    const funnelLeakageText = document.getElementById('funnel-leakage-text');
+    const funnelStagesList = document.getElementById('funnel-stages-list');
+    const transitionsList = document.getElementById('transitions-list');
+
     // State Variables
     let heatmapMatrix = null;
     let zonesData = [];
@@ -731,6 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetch('/api/v1/analytics/simulate', { method: 'POST' });
             await loadHeatmap();
             await loadAnalytics();
+            await loadFunnelReport();
         } catch (err) {
             console.error('Simulation step error:', err);
         } finally {
@@ -1358,6 +1367,86 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------------------
+    // 7.7 Shopper Conversion Funnel & Zone Transition Management (Phase 5)
+    // -------------------------------------------------------------------------
+    async function loadFunnelReport() {
+        try {
+            const res = await fetch('/api/v1/funnel/report');
+            if (!res.ok) return;
+            const data = await res.json();
+
+            // 1. Update summary KPIs
+            if (funnelOverallConv) {
+                funnelOverallConv.textContent = `Conv: ${data.overall_conversion_pct}%`;
+            }
+            if (funnelConvRate) {
+                funnelConvRate.textContent = `${data.overall_conversion_pct}%`;
+            }
+            if (funnelAbandonRate) {
+                funnelAbandonRate.textContent = `${data.overall_abandonment_pct}%`;
+            }
+            if (funnelLeakageText) {
+                funnelLeakageText.textContent = data.top_leakage_stage;
+            }
+
+            // 2. Render Funnel Stage Bars
+            if (funnelStagesList && data.stages) {
+                funnelStagesList.innerHTML = '';
+                data.stages.forEach((st) => {
+                    const card = document.createElement('div');
+                    card.className = 'funnel-stage-card';
+
+                    let dropPillHtml = '';
+                    if (st.drop_off_pct > 0) {
+                        dropPillHtml = `<span class="stage-drop-pill">↓ ${st.drop_off_pct}% drop-off (${st.avg_dwell_sec}s dwell)</span>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="stage-info-row">
+                            <div class="stage-title-wrap">
+                                <span class="stage-name">${st.stage_name}</span>
+                                <span class="stage-zone-tag">• ${st.associated_zone}</span>
+                            </div>
+                            <div class="stage-metrics-wrap">
+                                <span class="stage-visitors">${st.visitors} shoppers</span>
+                                <span class="stage-conv-pct">${st.conversion_rate_pct}%</span>
+                            </div>
+                        </div>
+                        <div class="funnel-progress-track">
+                            <div class="funnel-progress-bar" style="width: ${st.conversion_rate_pct}%;"></div>
+                        </div>
+                        ${dropPillHtml}
+                    `;
+                    funnelStagesList.appendChild(card);
+                });
+            }
+
+            // 3. Render Top Zone Migration Pathways
+            if (transitionsList && data.top_transitions) {
+                transitionsList.innerHTML = '';
+                data.top_transitions.forEach(tr => {
+                    const row = document.createElement('div');
+                    row.className = 'transition-row-card';
+                    row.innerHTML = `
+                        <div class="transition-path">
+                            <span>${tr.from_zone_name}</span>
+                            <span class="transition-arrow">→</span>
+                            <span>${tr.to_zone_name}</span>
+                        </div>
+                        <div class="transition-stats">
+                            <span class="transition-count">${tr.transition_count} visits</span>
+                            <span class="transition-share-pill">${tr.share_pct}%</span>
+                        </div>
+                    `;
+                    transitionsList.appendChild(row);
+                });
+            }
+        } catch (err) {
+            console.error('Error fetching shopper funnel report:', err);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // 8. Initial Initialization
     // -------------------------------------------------------------------------
     initCanvasResolution();
@@ -1366,5 +1455,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAnalytics();
     loadAdvisorInsights();
     loadStreamStatus();
+    loadFunnelReport();
 });
 

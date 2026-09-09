@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 from smart_store_analytics import __version__
 from smart_store_analytics.api.routes.advisor import router as advisor_router
 from smart_store_analytics.api.routes.analytics import router as analytics_router
+from smart_store_analytics.api.routes.funnel import router as funnel_router
 from smart_store_analytics.api.routes.health import router as health_router
 from smart_store_analytics.api.routes.heatmap import router as heatmap_router
 from smart_store_analytics.api.routes.reports import router as reports_router
@@ -118,6 +119,7 @@ def create_app(
     app.include_router(advisor_router)
     app.include_router(zones_router)
     app.include_router(streams_router)
+    app.include_router(funnel_router)
 
     # Static assets and template rendering
     web_dir = Path(__file__).parent.parent / "web"
