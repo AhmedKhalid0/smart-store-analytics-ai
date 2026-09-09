@@ -48,6 +48,9 @@ ENV/
 *.png
 *.jpg
 *.jpeg
+!docs/assets/**
+!docs/assets/*.png
+!docs/assets/*.jpg
 data/
 outputs/
 reports/
