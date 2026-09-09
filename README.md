@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-F59E0B.svg)](https://opensource.org/licenses/MIT)
 [![Computer Vision](https://img.shields.io/badge/Vision-YOLOv8%20%7C%20ByteTrack%20MOT-2563EB.svg?logo=opencv&logoColor=white)]()
 [![Spatial Analytics](https://img.shields.io/badge/Analytics-Ray--Casting%20%7C%202D%20Heatmaps-DC2626.svg)]()
-[![Tests Passing](https://img.shields.io/badge/tests-15%2F15%20passing-10B981.svg?logo=pytest&logoColor=white)]()
+[![Tests Passing](https://img.shields.io/badge/tests-63%2F63%20passing-10B981.svg?logo=pytest&logoColor=white)]()
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Privacy First](https://img.shields.io/badge/Privacy-100%25%20On--Premises%20%7C%20Zero--Cloud-0EA5E9.svg)]()
 
@@ -21,10 +21,18 @@
 
 ## 📸 Visual Showcase
 
-### Real-Time Retail Spatial Telemetry & Interactive REST API
-| Real-Time 2D Floorplan, Dwell Times & Trajectories | High-Throughput FastAPI Swagger Documentation |
+### Enterprise Spatial Intelligence & Real-Time Management Studio
+| Real-Time 2D Floorplan & Trajectories | AI Retail Copilot & Layout Advisory |
 | :---: | :---: |
-| ![Spatial Heatmaps Dashboard](docs/assets/01_spatial_heatmaps.png) | ![REST API Docs](docs/assets/02_rest_api.png) |
+| ![Spatial Heatmaps Dashboard](docs/assets/01_spatial_heatmaps.png) | ![AI Retail Copilot](docs/assets/ai_copilot_drawer.png) |
+
+| Interactive In-Browser Zone Editor | Shopper Flow & Conversion Funnel |
+| :---: | :---: |
+| ![Zone Editor](docs/assets/zone_editor_interactive.png) | ![Conversion Funnel](docs/assets/conversion_funnel_panel.png) |
+
+| Multi-Source CCTV & RTSP Ingestion | Live Webhooks & Telegram Alerting |
+| :---: | :---: |
+| ![Stream Ingestion](docs/assets/multi_source_streaming_active.png) | ![Alerting Modal](docs/assets/live_webhooks_telegram_modal.png) |
 
 ---
 
@@ -46,11 +54,15 @@ In modern e-commerce, operators have access to comprehensive behavioral telemetr
 | :--- | :--- | :--- |
 | 🎯 **Multi-Object Tracking (MOT)** | Intersection-over-Union (IoU) + Centroid Proximity Association | Persistent shopper tracking across frames with unique IDs, continuous trajectory trails, and occlusion resilience. |
 | 🏬 **Spatial Zone Dwell-Time** | Ray-Casting Point-in-Polygon Engine (Jordan Curve Theorem) | Frame-accurate entry/exit timestamps and continuous dwell seconds across arbitrary polygonal commercial zones. |
-| 🔥 **2D Spatial Traffic Heatmaps** | 2D Gaussian Kernel Density Accumulator | High-contrast visual matrix identifying store hotspots, high-engagement showcases, and dead aisles. |
+| 🤖 **AI Retail Copilot** | Store Spatial Health Scoring (0-100) & Merchandising Rules | Heuristic AI advisory engine analyzing traffic concentration, display dead zones, and bottleneck SLA risks with highlight triggers. |
+| 📐 **Interactive Zone Editor** | In-Browser Canvas Vertex Handle Dragging & Polygon CRUD | Drag vertex control handles on the 2D floorplan in real time, add custom department zones, and persist layouts to JSON. |
+| 📹 **Multi-Source Ingestion** | OpenCV Headless + RTSP VideoCapture & File Uploads | Switch seamlessly between zero-GPU synthetic simulation, recorded CCTV video files (MP4/AVI/MOV), and live IP camera feeds. |
+| 📊 **Conversion Funnel Engine** | Multi-Stage Flow Analysis (Entry $\to$ Browse $\to$ High Intent $\to$ POS) | Quantifies drop-off percentages, top leakage bottlenecks, journey durations, and directed zone migration matrices. |
+| 🔔 **Live Webhooks & Telegram** | Async HTTP Client (`httpx`) with Cooldown Throttling | Instant enterprise alerts dispatched to Slack, Discord, Zapier webhooks or Telegram chats when queue SLA thresholds breach. |
+| 📄 **Executive PDF & CSV Reports** | Print-Ready A4 CSS Template & RFC-4180 CSV Streams | One-click export of executive store audits with KPI summaries, zone dwell metrics, and historical queue incident logs. |
+| 🔥 **2D Spatial Heatmaps** | 2D Gaussian Kernel Density Accumulator | High-contrast visual matrix identifying store hotspots, high-engagement showcases, and dead aisles. |
 | ⏱️ **Queue Bottleneck SLA Monitor** | Multi-Condition Occupancy & Duration State Machine | Automated alerts when checkout occupancy or wait times breach operational service-level agreements. |
-| 🎛️ **Modern Glassmorphic Dashboard** | HTML5 Canvas 2D Floorplan, Modern Dark Mode | Live animated shopper trajectories, real-time KPI counter cards, zone engagement tables, and priority alert feeds. |
-| ⚡ **Rich Terminal CLI** | Typer & Rich Engine | Interactive operator commands (`stats`, `process`, `heatmap`, `serve`, `demo`) with structured terminal tables. |
-| 🧪 **Zero-GPU Deterministic Suite** | Synthetic Video Trajectory Simulation Generator | Full 15/15 unit & integration test coverage runnable in sub-second time on commodity CPU hardware without a dedicated GPU. |
+| 🧪 **Deterministic Test Suite** | 63 Unit & API Tests Across Core Pipeline | Sub-second deterministic verification without requiring dedicated GPU hardware. |
 
 ---
 
@@ -261,9 +273,29 @@ The FastAPI service exposes high-throughput endpoints for integration with enter
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/v1/health` | Engine health, detector model, and configured zones | None |
 | `GET` | `/api/v1/analytics/stats` | Real-time footfall, dwell-times, and active trajectories | None |
-| `POST` | `/api/v1/analytics/simulate` | Trigger synthetic trajectory batch simulation | `frames: int` (default: 60) |
+| `POST` | `/api/v1/analytics/simulate` | Trigger trajectory batch simulation step | None |
 | `GET` | `/api/v1/heatmap` | Retrieve normalized 2D density grid matrix | None |
 | `GET` | `/api/v1/heatmap/image` | Download colorized 24-bit RGB PPM heatmap image | None |
+| `GET` | `/api/v1/reports/executive` | Executive A4 print-ready HTML & PDF store audit report | None |
+| `GET` | `/api/v1/reports/export/dwell-csv` | Stream RFC-4180 CSV export of commercial zone dwell metrics | None |
+| `GET` | `/api/v1/reports/export/queue-csv` | Stream RFC-4180 CSV export of queue SLA incident history | None |
+| `GET` | `/api/v1/advisor/insights` | AI Retail Copilot spatial health score & operational advice | None |
+| `GET` | `/api/v1/zones` | List all active commercial store zones and polygons | None |
+| `POST` | `/api/v1/zones` | Create new commercial zone with custom coordinates | `ZoneCreateRequest` |
+| `PUT` | `/api/v1/zones/{id}` | Update zone polygon coordinates or metadata | `ZoneUpdateRequest` |
+| `DELETE` | `/api/v1/zones/{id}` | Remove commercial zone from floorplan | None |
+| `POST` | `/api/v1/zones/reset` | Reset commercial store layout to factory default zones | None |
+| `GET` | `/api/v1/streams/status` | Active stream source, resolution, FPS, and status | None |
+| `POST` | `/api/v1/streams/upload` | Ingest recorded retail CCTV video file (MP4, AVI, MOV) | `multipart/form-data` |
+| `POST` | `/api/v1/streams/connect-rtsp` | Connect live IP camera or NVR stream | `ConnectRTSPRequest` |
+| `POST` | `/api/v1/streams/reset-synthetic` | Restore zero-GPU deterministic simulation generator | None |
+| `GET` | `/api/v1/funnel/report` | Multi-stage shopper conversion funnel & drop-off metrics | None |
+| `GET` | `/api/v1/funnel/transitions` | Directed zone migration pathways and probability shares | None |
+| `GET` | `/api/v1/notifications/config` | Webhook URL and Telegram bot alert configuration | None |
+| `PUT` | `/api/v1/notifications/config` | Update webhook endpoints, bot tokens, and alert policy | `NotificationConfig` |
+| `POST` | `/api/v1/notifications/test-webhook` | Test verification ping to external webhook | `TestWebhookRequest` |
+| `POST` | `/api/v1/notifications/test-telegram` | Test verification alert to Telegram chat | `TestTelegramRequest` |
+| `POST` | `/api/v1/notifications/dispatch-sample` | Simulate and dispatch critical SLA breach alert | None |
 
 ### Sample JSON Payloads
 
@@ -341,23 +373,70 @@ pytest --cov=src/smart_store_analytics -v
 ### Test Suite Coverage Breakdown
 
 ```text
-tests/test_api.py::TestAPI::test_analytics_stats_endpoint              PASSED [ 6%]
-tests/test_api.py::TestAPI::test_health_endpoint                       PASSED [13%]
-tests/test_api.py::TestAPI::test_heatmap_image_endpoint                PASSED [20%]
-tests/test_api.py::TestAPI::test_heatmap_matrix_endpoint               PASSED [26%]
-tests/test_geometry.py::TestGeometry::test_calculate_centroid          PASSED [33%]
-tests/test_geometry.py::TestGeometry::test_calculate_iou_exact_overlap  PASSED [40%]
-tests/test_geometry.py::TestGeometry::test_calculate_iou_no_overlap    PASSED [46%]
-tests/test_geometry.py::TestGeometry::test_euclidean_distance          PASSED [53%]
-tests/test_geometry.py::TestGeometry::test_point_in_polygon            PASSED [60%]
-tests/test_heatmap.py::TestHeatmap::test_export_ppm_image              PASSED [66%]
-tests/test_heatmap.py::TestHeatmap::test_heatmap_point_accumulation    PASSED [73%]
-tests/test_queue.py::TestQueueMonitor::test_queue_alert_triggers       PASSED [80%]
-tests/test_spatial_analytics.py::TestSpatialAnalytics::test_zone_dwell  PASSED [86%]
-tests/test_tracking.py::TestTracking::test_new_object_assigns_id       PASSED [93%]
-tests/test_tracking.py::TestTracking::test_single_object_continuity    PASSED [100%]
+tests/test_advisor.py::TestAdvisor::test_advisor_analysis_structure           PASSED [ 2%]
+tests/test_advisor.py::TestAdvisor::test_api_advisor_insights_endpoint        PASSED [ 4%]
+tests/test_api.py::TestAPI::test_analytics_stats_endpoint                     PASSED [ 6%]
+tests/test_api.py::TestAPI::test_health_endpoint                              PASSED [ 8%]
+tests/test_api.py::TestAPI::test_heatmap_image_endpoint                       PASSED [ 9%]
+tests/test_api.py::TestAPI::test_heatmap_matrix_endpoint                      PASSED [11%]
+tests/test_funnel.py::TestFunnelEngine::test_default_funnel_generation        PASSED [13%]
+tests/test_funnel.py::TestFunnelEngine::test_stage_ordering_and_drop_off_metrics PASSED [14%]
+tests/test_funnel.py::TestFunnelEngine::test_top_leakage_stage_identified     PASSED [16%]
+tests/test_funnel.py::TestFunnelEngine::test_funnel_with_custom_spatial_engine PASSED [17%]
+tests/test_funnel.py::TestFunnelAPI::test_get_funnel_report_endpoint         PASSED [19%]
+tests/test_funnel.py::TestFunnelAPI::test_get_funnel_transitions_endpoint    PASSED [21%]
+tests/test_geometry.py::TestGeometry::test_calculate_centroid                 PASSED [22%]
+tests/test_geometry.py::TestGeometry::test_calculate_iou_exact_overlap         PASSED [24%]
+tests/test_geometry.py::TestGeometry::test_calculate_iou_no_overlap           PASSED [25%]
+tests/test_geometry.py::TestGeometry::test_euclidean_distance                 PASSED [27%]
+tests/test_geometry.py::TestGeometry::test_point_in_polygon                   PASSED [29%]
+tests/test_heatmap.py::TestHeatmap::test_export_ppm_image                     PASSED [30%]
+tests/test_heatmap.py::TestHeatmap::test_heatmap_point_accumulation           PASSED [32%]
+tests/test_notifications.py::TestAlertDispatcher::test_default_config         PASSED [33%]
+tests/test_notifications.py::TestAlertDispatcher::test_save_and_reload_config PASSED [35%]
+tests/test_notifications.py::TestAlertDispatcher::test_cooldown_suppression   PASSED [37%]
+tests/test_notifications.py::TestAlertDispatcher::test_mock_test_webhook      PASSED [38%]
+tests/test_notifications.py::TestAlertDispatcher::test_mock_test_telegram     PASSED [40%]
+tests/test_notifications.py::TestNotificationsAPI::test_get_config_endpoint  PASSED [41%]
+tests/test_notifications.py::TestNotificationsAPI::test_update_config_endpoint PASSED [43%]
+tests/test_notifications.py::TestNotificationsAPI::test_test_webhook_endpoint PASSED [44%]
+tests/test_notifications.py::TestNotificationsAPI::test_test_telegram_endpoint PASSED [46%]
+tests/test_notifications.py::TestNotificationsAPI::test_dispatch_sample_endpoint PASSED [48%]
+tests/test_queue.py::TestQueueMonitor::test_queue_alert_triggers_on_excessive_occupancy PASSED [49%]
+tests/test_reporter.py::TestReporter::test_api_executive_report_endpoint     PASSED [51%]
+tests/test_reporter.py::TestReporter::test_api_export_dwell_csv_endpoint     PASSED [52%]
+tests/test_reporter.py::TestReporter::test_api_export_queue_csv_endpoint     PASSED [54%]
+tests/test_reporter.py::TestReporter::test_export_dwell_csv                   PASSED [56%]
+tests/test_reporter.py::TestReporter::test_export_queue_csv                   PASSED [57%]
+tests/test_reporter.py::TestReporter::test_generate_executive_html           PASSED [59%]
+tests/test_spatial_analytics.py::TestSpatialAnalytics::test_zone_entry_and_dwell_accumulation PASSED [60%]
+tests/test_streams.py::TestStreamManager::test_default_synthetic_state        PASSED [62%]
+tests/test_streams.py::TestStreamManager::test_set_rtsp_source                PASSED [63%]
+tests/test_streams.py::TestStreamManager::test_invalid_rtsp_url_raises_error  PASSED [65%]
+tests/test_streams.py::TestStreamManager::test_video_file_not_found_raises_error PASSED [67%]
+tests/test_streams.py::TestStreamManager::test_invalid_video_extension_raises_error PASSED [68%]
+tests/test_streams.py::TestStreamManager::test_step_frame_execution           PASSED [70%]
+tests/test_streams.py::TestStreamsAPI::test_get_stream_status_endpoint        PASSED [71%]
+tests/test_streams.py::TestStreamsAPI::test_connect_rtsp_endpoint             PASSED [73%]
+tests/test_streams.py::TestStreamsAPI::test_connect_invalid_rtsp_endpoint     PASSED [75%]
+tests/test_streams.py::TestStreamsAPI::test_reset_synthetic_endpoint          PASSED [76%]
+tests/test_streams.py::TestStreamsAPI::test_upload_invalid_format             PASSED [78%]
+tests/test_streams.py::TestStreamsAPI::test_upload_valid_video_file            PASSED [79%]
+tests/test_tracking.py::TestTracking::test_new_object_assigns_new_id          PASSED [81%]
+tests/test_tracking.py::TestTracking::test_single_object_tracking_continuity  PASSED [83%]
+tests/test_zones.py::TestZonesEngine::test_default_zones_registration          PASSED [84%]
+tests/test_zones.py::TestZonesEngine::test_add_and_get_custom_zone            PASSED [86%]
+tests/test_zones.py::TestZonesEngine::test_update_zone_polygon_and_properties PASSED [87%]
+tests/test_zones.py::TestZonesEngine::test_remove_zone                         PASSED [89%]
+tests/test_zones.py::TestZonesEngine::test_reset_default_zones                 PASSED [90%]
+tests/test_zones.py::TestZonesEngine::test_json_persistence                   PASSED [92%]
+tests/test_zones.py::TestZonesAPI::test_list_zones_endpoint                   PASSED [94%]
+tests/test_zones.py::TestZonesAPI::test_get_single_zone_endpoint             PASSED [95%]
+tests/test_zones.py::TestZonesAPI::test_create_zone_endpoint                  PASSED [97%]
+tests/test_zones.py::TestZonesAPI::test_update_zone_endpoint                  PASSED [98%]
+tests/test_zones.py::TestZonesAPI::test_delete_zone_endpoint                  PASSED [100%]
 
-======================== 15 passed in 0.59s =========================
+======================= 63 passed in 1.15s =========================
 ```
 
 ---
