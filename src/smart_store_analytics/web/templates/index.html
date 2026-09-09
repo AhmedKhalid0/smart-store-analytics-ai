@@ -1,126 +1,227 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <title>SmartStore Vision AI | Retail Spatial Intelligence</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="dashboard-layout">
-        <!-- Top Navbar -->
-        <header class="navbar">
-            <div class="brand">
-                <div class="logo-icon">👁️</div>
-                <div class="brand-text">
-                    <h1>Smart-Store-Analytics</h1>
-                    <span class="badge">Vision AI & Retail Intelligence v{{ version }}</span>
+    <div class="app-layout">
+        <!-- Top App Navigation -->
+        <header class="top-nav">
+            <div class="nav-left">
+                <div class="brand-badge">
+                    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <span class="brand-name">SmartStore<span class="brand-accent">.ai</span></span>
+                </div>
+                <div class="divider-v"></div>
+                <div class="stream-pill">
+                    <span class="pulse-indicator"></span>
+                    <span class="stream-title">Camera 01: Ground Floor Retail</span>
+                    <span class="stream-meta" id="stream-fps">30 FPS • 1080p</span>
                 </div>
             </div>
-            <div class="nav-metrics">
-                <div class="metric-pill">
-                    <span class="dot live"></span>
-                    <span class="label">Detector:</span>
-                    <strong id="metric-model">YOLOv8n (Person)</strong>
+
+            <div class="nav-right">
+                <div class="system-status">
+                    <span class="status-chip">
+                        <span class="chip-label">Engine:</span>
+                        <span class="chip-value" id="engine-model">YOLOv8n + ByteTrack</span>
+                    </span>
+                    <span class="status-chip">
+                        <span class="chip-label">SLA Status:</span>
+                        <span class="chip-value text-success" id="sla-health-chip">Healthy (100%)</span>
+                    </span>
                 </div>
-                <div class="metric-pill">
-                    <span class="label">Tracker:</span>
-                    <strong>ByteTrack / MOT</strong>
-                </div>
-                <div class="metric-pill">
-                    <span class="label">FPS:</span>
-                    <strong id="metric-fps" class="text-cyan">30.0</strong>
-                </div>
-                <a href="/docs" target="_blank" class="btn btn-outline btn-sm">API Docs ↗</a>
+
+                <div class="divider-v"></div>
+
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="nav-btn icon-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                    </svg>
+                </button>
+
+                <a href="/docs" target="_blank" class="nav-btn api-btn">
+                    <span>API Docs</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+                </a>
             </div>
         </header>
 
-        <!-- KPI Metrics Grid -->
-        <section class="kpi-grid">
+        <!-- KPI Metrics Banner -->
+        <section class="kpi-banner">
             <div class="kpi-card">
-                <span class="kpi-label">Total Footfall</span>
-                <div class="kpi-value-row">
-                    <span class="kpi-val" id="kpi-footfall">0</span>
-                    <span class="kpi-badge text-emerald">+18% vs avg</span>
+                <div class="kpi-header">
+                    <span class="kpi-title">Total Daily Footfall</span>
+                    <span class="kpi-tag positive">+14.2%</span>
                 </div>
-                <span class="kpi-sub">Unique shoppers detected</span>
+                <div class="kpi-figure-row">
+                    <span class="kpi-number" id="kpi-footfall">0</span>
+                    <span class="kpi-unit">shoppers</span>
+                </div>
+                <p class="kpi-hint">Unique visitors tracked across store</p>
             </div>
 
             <div class="kpi-card">
-                <span class="kpi-label">Active In-Store</span>
-                <div class="kpi-value-row">
-                    <span class="kpi-val text-cyan" id="kpi-active">0</span>
-                    <span class="kpi-badge text-cyan">Live</span>
+                <div class="kpi-header">
+                    <span class="kpi-title">Current In-Store</span>
+                    <span class="kpi-tag live">Real-Time</span>
                 </div>
-                <span class="kpi-sub">Currently browsing floor</span>
+                <div class="kpi-figure-row">
+                    <span class="kpi-number" id="kpi-active">0</span>
+                    <span class="kpi-unit">active</span>
+                </div>
+                <p class="kpi-hint">Simultaneous occupants on floor</p>
             </div>
 
             <div class="kpi-card">
-                <span class="kpi-label">Avg Store Dwell Time</span>
-                <div class="kpi-value-row">
-                    <span class="kpi-val text-purple" id="kpi-dwell">0.0s</span>
-                    <span class="kpi-badge text-purple">High Engagement</span>
+                <div class="kpi-header">
+                    <span class="kpi-title">Average Dwell Time</span>
+                    <span class="kpi-tag neutral">Zone Avg</span>
                 </div>
-                <span class="kpi-sub">Across all commercial zones</span>
+                <div class="kpi-figure-row">
+                    <span class="kpi-number" id="kpi-dwell">0.0</span>
+                    <span class="kpi-unit">sec</span>
+                </div>
+                <p class="kpi-hint">Engagement duration per commercial zone</p>
             </div>
 
             <div class="kpi-card">
-                <span class="kpi-label">Queue Bottleneck Alerts</span>
-                <div class="kpi-value-row">
-                    <span class="kpi-val text-amber" id="kpi-alerts">0</span>
-                    <span class="kpi-badge text-amber" id="kpi-alert-status">Normal</span>
+                <div class="kpi-header">
+                    <span class="kpi-title">Queue SLA & Bottlenecks</span>
+                    <span class="kpi-tag" id="kpi-sla-tag">Normal</span>
                 </div>
-                <span class="kpi-sub">Checkout SLA violations</span>
+                <div class="kpi-figure-row">
+                    <span class="kpi-number" id="kpi-alerts">0</span>
+                    <span class="kpi-unit">alarms</span>
+                </div>
+                <p class="kpi-hint">Threshold: &gt;5 shoppers / 180s wait</p>
             </div>
         </section>
 
         <!-- Main Workspace -->
-        <div class="main-container">
-            <!-- Left: Interactive 2D Store Floorplan & Trajectory Canvas -->
-            <main class="canvas-workspace">
-                <div class="panel-header">
-                    <div class="header-title">
-                        <h3>2D Store Spatial Floorplan & Trajectories</h3>
-                        <span class="subtitle">Live multi-object tracking and zone occupancy</span>
+        <div class="content-workspace">
+            <!-- Left: Architectural Floorplan View -->
+            <main class="floorplan-container">
+                <div class="floorplan-toolbar">
+                    <div class="toolbar-left">
+                        <div class="view-title">
+                            <h2>Retail Floorplan & Trajectory Studio</h2>
+                            <span class="view-subtitle">High-precision 2D tracking & spatial occupancy resolution</span>
+                        </div>
                     </div>
-                    <div class="canvas-controls">
-                        <label class="toggle-control">
-                            <input type="checkbox" id="toggle-heatmap" checked>
-                            <span>Density Heatmap Overlay</span>
-                        </label>
-                        <button id="btn-simulate" class="btn btn-primary btn-sm">▶️ Run Simulation Stream</button>
+
+                    <div class="toolbar-right">
+                        <!-- Display Layer Toggles -->
+                        <div class="layer-toggles">
+                            <button id="toggle-heatmap" class="toggle-btn active" title="Toggle Heatmap Density Layer">
+                                <span class="toggle-dot heatmap-dot"></span>
+                                <span>Heatmap</span>
+                            </button>
+                            <button id="toggle-trajectories" class="toggle-btn active" title="Toggle Shopper Trajectory Trails">
+                                <span class="toggle-dot trails-dot"></span>
+                                <span>Trajectories</span>
+                            </button>
+                            <button id="toggle-zones" class="toggle-btn active" title="Toggle Commercial Zone Boundaries">
+                                <span class="toggle-dot zones-dot"></span>
+                                <span>Zones</span>
+                            </button>
+                            <button id="toggle-fixtures" class="toggle-btn active" title="Toggle Architectural Store Fixtures">
+                                <span class="toggle-dot fixtures-dot"></span>
+                                <span>Fixtures</span>
+                            </button>
+                        </div>
+
+                        <div class="divider-v"></div>
+
+                        <!-- Simulation Action Buttons -->
+                        <div class="sim-actions">
+                            <button id="btn-stream-auto" class="btn btn-secondary">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                <span id="btn-stream-text">Live Play</span>
+                            </button>
+                            <button id="btn-simulate" class="btn btn-primary">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                <span>Simulate Frame</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="canvas-wrapper">
+                <!-- Canvas Area -->
+                <div class="canvas-viewport" id="canvas-viewport">
                     <canvas id="store-canvas" width="1280" height="720"></canvas>
+                    
+                    <!-- Floating Floorplan Legend -->
+                    <div class="canvas-legend">
+                        <div class="legend-item"><span class="legend-swatch entrance"></span> Entrance Foyer</div>
+                        <div class="legend-item"><span class="legend-swatch promo"></span> Showcase &amp; Promo</div>
+                        <div class="legend-item"><span class="legend-swatch electronics"></span> Electronics Wall</div>
+                        <div class="legend-item"><span class="legend-swatch checkout"></span> Checkout SLA Queue</div>
+                    </div>
+
+                    <!-- Canvas Quick Info -->
+                    <div class="canvas-quick-info">
+                        <span id="quick-frame-count">Frame 120 / 120</span>
+                        <span class="info-sep">•</span>
+                        <span>Zero-GPU Deterministic</span>
+                    </div>
                 </div>
             </main>
 
-            <!-- Right Sidebar: Zone Engagement & Queue Alerts -->
-            <aside class="analytics-sidebar">
-                <!-- Zone Engagement Breakdown -->
-                <div class="zone-breakdown-card">
-                    <div class="panel-header">
-                        <h3>Commercial Zones</h3>
-                        <span class="badge" id="zones-count-badge">4 Configured</span>
+            <!-- Right: Zone Breakdown & Queue Alarms Sidebar -->
+            <aside class="side-panel">
+                <!-- Commercial Zone Performance -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h3>Commercial Zones</h3>
+                            <span class="section-badge" id="zones-badge">4 Configured</span>
+                        </div>
                     </div>
-                    <div class="zones-list" id="zones-list">
-                        <!-- Populated by app.js -->
+                    <div class="zones-table-container">
+                        <div class="zones-list" id="zones-list">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
                     </div>
                 </div>
 
-                <!-- Queue & Bottleneck Alerts -->
-                <div class="queue-alerts-card">
-                    <div class="panel-header">
-                        <h3>Queue Anomaly Alerts</h3>
+                <!-- Live Queue SLA Anomaly Feed -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h3>Queue SLA Bottleneck Monitor</h3>
+                        </div>
+                        <span class="status-indicator-badge success" id="queue-overall-badge">All Queues Normal</span>
                     </div>
                     <div class="alerts-feed" id="alerts-feed">
-                        <div class="empty-alerts">No active bottleneck alerts. Queue SLA operating within normal limits.</div>
+                        <!-- Populated dynamically by app.js -->
+                    </div>
+                </div>
+
+                <!-- Active Shopper Inspector -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h3>Shopper Telemetry Tracks</h3>
+                        </div>
+                        <span class="section-badge" id="tracks-badge">4 Tracks</span>
+                    </div>
+                    <div class="tracks-list" id="tracks-list">
+                        <!-- Populated dynamically by app.js -->
                     </div>
                 </div>
             </aside>
