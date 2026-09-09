@@ -133,6 +133,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const funnelStagesList = document.getElementById('funnel-stages-list');
     const transitionsList = document.getElementById('transitions-list');
 
+    // Live Webhooks & Telegram Alerting DOM Elements (Phase 6)
+    const btnNotificationsToggle = document.getElementById('btn-notifications-toggle');
+    const notificationsModalBackdrop = document.getElementById('notifications-modal-backdrop');
+    const btnCloseNotifModal = document.getElementById('btn-close-notif-modal');
+    const btnCancelNotif = document.getElementById('btn-cancel-notif');
+    const formNotificationsConfig = document.getElementById('form-notifications-config');
+    const chkWebhookEnabled = document.getElementById('chk-webhook-enabled');
+    const inputWebhookUrl = document.getElementById('input-webhook-url');
+    const btnTestWebhook = document.getElementById('btn-test-webhook');
+    const webhookTestFeedback = document.getElementById('webhook-test-feedback');
+    const chkTgEnabled = document.getElementById('chk-tg-enabled');
+    const inputTgToken = document.getElementById('input-tg-token');
+    const inputTgChatId = document.getElementById('input-tg-chat-id');
+    const btnTestTelegram = document.getElementById('btn-test-telegram');
+    const tgTestFeedback = document.getElementById('tg-test-feedback');
+    const selectMinSeverity = document.getElementById('select-min-severity');
+    const inputCooldownSec = document.getElementById('input-cooldown-sec');
+    const btnDispatchSample = document.getElementById('btn-dispatch-sample');
+
     // State Variables
     let heatmapMatrix = null;
     let zonesData = [];
@@ -1444,6 +1463,193 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Error fetching shopper funnel report:', err);
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // 7.8 Live Webhook & Telegram Notification Management (Phase 6)
+    // -------------------------------------------------------------------------
+    async function loadNotificationConfig() {
+        try {
+            const res = await fetch('/api/v1/notifications/config');
+            if (res.ok) {
+                const cfg = await res.json();
+                if (chkWebhookEnabled) chkWebhookEnabled.checked = Boolean(cfg.webhook_enabled);
+                if (inputWebhookUrl) inputWebhookUrl.value = cfg.webhook_url || '';
+                if (chkTgEnabled) chkTgEnabled.checked = Boolean(cfg.telegram_enabled);
+                if (inputTgToken) inputTgToken.value = cfg.telegram_bot_token || '';
+                if (inputTgChatId) inputTgChatId.value = cfg.telegram_chat_id || '';
+                if (selectMinSeverity) selectMinSeverity.value = cfg.min_severity_level || 'warning';
+                if (inputCooldownSec) inputCooldownSec.value = cfg.cooldown_seconds || 60;
+            }
+        } catch (err) {
+            console.error('Error fetching notification configuration:', err);
+        }
+    }
+
+    function openNotificationModal() {
+        if (notificationsModalBackdrop) {
+            notificationsModalBackdrop.classList.add('open');
+            loadNotificationConfig();
+        }
+    }
+
+    function closeNotificationModal() {
+        if (notificationsModalBackdrop) {
+            notificationsModalBackdrop.classList.remove('open');
+        }
+        if (webhookTestFeedback) webhookTestFeedback.textContent = '';
+        if (tgTestFeedback) tgTestFeedback.textContent = '';
+    }
+
+    if (btnNotificationsToggle) btnNotificationsToggle.addEventListener('click', openNotificationModal);
+    if (btnCloseNotifModal) btnCloseNotifModal.addEventListener('click', closeNotificationModal);
+    if (btnCancelNotif) btnCancelNotif.addEventListener('click', closeNotificationModal);
+
+    // Test Webhook Action
+    if (btnTestWebhook) {
+        btnTestWebhook.addEventListener('click', async () => {
+            const url = inputWebhookUrl.value.trim();
+            if (!url) {
+                if (webhookTestFeedback) {
+                    webhookTestFeedback.textContent = 'Please enter a webhook URL first.';
+                    webhookTestFeedback.className = 'test-feedback-msg error';
+                }
+                return;
+            }
+
+            btnTestWebhook.textContent = 'Testing...';
+            if (webhookTestFeedback) webhookTestFeedback.textContent = '';
+
+            try {
+                const res = await fetch('/api/v1/notifications/test-webhook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ webhook_url: url })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (webhookTestFeedback) {
+                        webhookTestFeedback.textContent = `✓ Ping successful (${data.message || '200 OK'})`;
+                        webhookTestFeedback.className = 'test-feedback-msg success';
+                    }
+                } else {
+                    const err = await res.json();
+                    if (webhookTestFeedback) {
+                        webhookTestFeedback.textContent = `✕ ${err.detail || 'Test ping failed'}`;
+                        webhookTestFeedback.className = 'test-feedback-msg error';
+                    }
+                }
+            } catch (err) {
+                if (webhookTestFeedback) {
+                    webhookTestFeedback.textContent = '✕ Network error dispatching test ping';
+                    webhookTestFeedback.className = 'test-feedback-msg error';
+                }
+            } finally {
+                btnTestWebhook.textContent = 'Test Ping';
+            }
+        });
+    }
+
+    // Test Telegram Action
+    if (btnTestTelegram) {
+        btnTestTelegram.addEventListener('click', async () => {
+            const bot_token = inputTgToken.value.trim();
+            const chat_id = inputTgChatId.value.trim();
+
+            if (!bot_token || !chat_id) {
+                if (tgTestFeedback) {
+                    tgTestFeedback.textContent = 'Both Bot Token and Chat ID are required.';
+                    tgTestFeedback.className = 'test-feedback-msg error';
+                }
+                return;
+            }
+
+            btnTestTelegram.textContent = 'Testing...';
+            if (tgTestFeedback) tgTestFeedback.textContent = '';
+
+            try {
+                const res = await fetch('/api/v1/notifications/test-telegram', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bot_token, chat_id })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (tgTestFeedback) {
+                        tgTestFeedback.textContent = `✓ Message sent successfully (${data.message || 'Delivered'})`;
+                        tgTestFeedback.className = 'test-feedback-msg success';
+                    }
+                } else {
+                    const err = await res.json();
+                    if (tgTestFeedback) {
+                        tgTestFeedback.textContent = `✕ ${err.detail || 'Delivery failed'}`;
+                        tgTestFeedback.className = 'test-feedback-msg error';
+                    }
+                }
+            } catch (err) {
+                if (tgTestFeedback) {
+                    tgTestFeedback.textContent = '✕ Network error contacting Telegram API';
+                    tgTestFeedback.className = 'test-feedback-msg error';
+                }
+            } finally {
+                btnTestTelegram.textContent = 'Test Send';
+            }
+        });
+    }
+
+    // Dispatch Sample SLA Breach
+    if (btnDispatchSample) {
+        btnDispatchSample.addEventListener('click', async () => {
+            btnDispatchSample.textContent = 'Dispatching...';
+            try {
+                const res = await fetch('/api/v1/notifications/dispatch-sample', { method: 'POST' });
+                if (res.ok) {
+                    alert('Sample Queue SLA violation successfully broadcast to active notification channels!');
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || 'Dispatch failed.');
+                }
+            } catch (err) {
+                console.error('Error dispatching sample alert:', err);
+            } finally {
+                btnDispatchSample.textContent = 'Dispatch Sample SLA Breach';
+            }
+        });
+    }
+
+    // Save Notifications Configuration Form
+    if (formNotificationsConfig) {
+        formNotificationsConfig.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                webhook_url: inputWebhookUrl ? inputWebhookUrl.value.trim() || null : null,
+                webhook_enabled: chkWebhookEnabled ? chkWebhookEnabled.checked : false,
+                telegram_bot_token: inputTgToken ? inputTgToken.value.trim() || null : null,
+                telegram_chat_id: inputTgChatId ? inputTgChatId.value.trim() || null : null,
+                telegram_enabled: chkTgEnabled ? chkTgEnabled.checked : false,
+                min_severity_level: selectMinSeverity ? selectMinSeverity.value : 'warning',
+                cooldown_seconds: inputCooldownSec ? parseInt(inputCooldownSec.value, 10) || 60 : 60,
+            };
+
+            try {
+                const res = await fetch('/api/v1/notifications/config', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                if (res.ok) {
+                    closeNotificationModal();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || 'Failed to save notification settings.');
+                }
+            } catch (err) {
+                console.error('Error saving notification configuration:', err);
+            }
+        });
     }
 
     // -------------------------------------------------------------------------

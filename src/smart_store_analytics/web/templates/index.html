@@ -61,6 +61,14 @@
                     </svg>
                 </button>
 
+                <!-- Alerts & Webhook Settings Button -->
+                <button id="btn-notifications-toggle" class="nav-btn icon-btn" title="Live Webhooks & Telegram Alerting" aria-label="Alert Settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                </button>
+
                 <!-- Stream Ingestion Source Selector -->
                 <div class="dropdown-wrapper" id="stream-source-wrapper">
                     <button id="stream-source-btn" class="nav-btn stream-source-btn" aria-haspopup="true" aria-expanded="false" title="Switch Video Feed Source">
@@ -509,6 +517,93 @@
                     <button type="submit" class="btn btn-primary" id="btn-submit-rtsp">
                         <span id="rtsp-btn-text">Connect Camera</span>
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Live Webhooks & Telegram Notifications Modal Dialog (Phase 6) -->
+    <div class="zone-modal-backdrop" id="notifications-modal-backdrop">
+        <div class="zone-modal notif-modal" id="notifications-modal">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span class="modal-icon">🔔</span>
+                    <h3>Live Webhooks &amp; Telegram Alerting</h3>
+                </div>
+                <button class="modal-close" id="btn-close-notif-modal" type="button" aria-label="Close Modal">&times;</button>
+            </div>
+            <form id="form-notifications-config" class="modal-form">
+                <!-- Section 1: Webhook -->
+                <div class="notif-section-card">
+                    <div class="notif-section-header">
+                        <div class="notif-section-title">
+                            <strong>HTTP Webhook Integration</strong>
+                            <span>Real-time JSON dispatch to Slack, Discord, Zapier, or SIEM</span>
+                        </div>
+                        <label class="switch-toggle" title="Enable/Disable Webhooks">
+                            <input type="checkbox" id="chk-webhook-enabled" />
+                            <span class="slider-round"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-webhook-url">Webhook Endpoint URL</label>
+                        <div class="input-with-action">
+                            <input type="url" id="input-webhook-url" placeholder="https://hooks.slack.com/services/..." />
+                            <button type="button" class="btn-micro-test" id="btn-test-webhook">Test Ping</button>
+                        </div>
+                        <span class="test-feedback-msg" id="webhook-test-feedback"></span>
+                    </div>
+                </div>
+
+                <!-- Section 2: Telegram Bot -->
+                <div class="notif-section-card">
+                    <div class="notif-section-header">
+                        <div class="notif-section-title">
+                            <strong>Telegram Bot Alerting</strong>
+                            <span>Instant push notifications delivered to store management chats</span>
+                        </div>
+                        <label class="switch-toggle" title="Enable/Disable Telegram">
+                            <input type="checkbox" id="chk-tg-enabled" />
+                            <span class="slider-round"></span>
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="input-tg-token">Bot Token</label>
+                            <input type="text" id="input-tg-token" placeholder="e.g. 123456789:AAFg..." />
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="input-tg-chat-id">Chat ID</label>
+                            <div class="input-with-action">
+                                <input type="text" id="input-tg-chat-id" placeholder="e.g. -100123456789" />
+                                <button type="button" class="btn-micro-test" id="btn-test-telegram">Test Send</button>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="test-feedback-msg" id="tg-test-feedback"></span>
+                </div>
+
+                <!-- Section 3: Alert Policy -->
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="select-min-severity">Minimum Severity Threshold</label>
+                        <select id="select-min-severity">
+                            <option value="info">Info (All operational events)</option>
+                            <option value="warning" selected>Warning (Moderate delays &amp; dwell)</option>
+                            <option value="critical">Critical (Severe SLA violations only)</option>
+                        </select>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="input-cooldown-sec">Alert Cooldown Window</label>
+                        <input type="number" id="input-cooldown-sec" min="10" max="3600" value="60" />
+                        <span class="form-hint">Seconds between repeat zone alarms</span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-notif">Cancel</button>
+                    <button type="button" class="btn btn-outline" id="btn-dispatch-sample">Dispatch Sample SLA Breach</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-notif">Save Configuration</button>
                 </div>
             </form>
         </div>
